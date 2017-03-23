@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="me.ywork.salary.repository.SalInfoRepository">   
+ 
+    <!-- 员工薪资情况的详细信息 -->
+   	<resultMap id="StaffSalDetailInfoMap" type="me.ywork.salary.model.SalInfoDetailModel">
+        <id column="id" property="id"/>
+        <result column="ding_staffid" property="dingStaffId"/>
+        <result column="sal_rule_type" property="salRuleType"/>
+        <result column="total_sal" property="totalSal"/>
+        <result column="create_date" property="createDate"/>
+        <result column="modified_date" property="modifiedDate"/>
+     </resultMap>
+ 
+   	<!-- 得到分页的员工薪资信息 -->
+	<select id = "getStaffSalInfos" resultType= "me.ywork.salary.model.SalStaffBaseInfoModel">
+    	select
+    	   e.fd_name as staffName,			          
+           staffInfo.should_pay_sal as shouldPaySal 	                     	           
+	     from 
+	          dingsal_staff_info staffInfo,
+	          ding_org_element e  
+		  where 
+		        staffInfo.corp_id = #{corpId} and 
+				staffInfo.ding_staffid =e.fd_dingid and 
+				e.fd_orgid=#{corpId} and
+				e.fd_org_type = 8
+		        limit #{beginNum},#{endNum}
+	 </select>
+	 
+	 <!-- 得到所有员工的薪资信息 -->
+	 <select id="getAllStaffSalInfo" resultType="me.ywork.salary.entity.SalStaffBaseInfoEntity">
+	     select 
+	            staffInfo.should_pay_sal as shouldPaySal,
+	            staffInfo.ding_staffid as dingStaffId,
+	            staffInfo.corp_bs_ruleid as corpBaseRuleId,
+	            staffInfo.atten_social as attenSocial,
+	            staffInfo.atten_personal_tax as attenPersonalTax
+	            from 
+		             dingsal_staff_info staffInfo,
+		             ding_org_element e
+	             where 
+	                 staffInfo.corp_id=#{corpId} and
+	                 e.fd_orgid=#{corpId} and
+	                 staffInfo.ding_staffid=e.fd_dingid and
+	                 e.fd_org_type=8
+	 </select>	
+	
+	<!-- 获取选中人员工资详情(编辑规则):通过编辑可以获取多个人的薪资详情-->
+	<select id="getMutiStaffSalInfosDetail" resultMap = "StaffSalDetailInfoMap">
+	    select 
+           staffInfo.id,
+           staffInfo.ding_staffid,
+           sysRule.sal_rule_type,
+           staffInfo.should_pay_sal
+	        from 
+	             dingsal_staff_info staffInfo,
+	             dingsal_corp_baserule baseRule,
+	             dingsal_sys_salrule sysRule
+	        where 
+	            staffInfo.corp_bs_ruleid = baseRule.id and
+	            baseRule.sal_rule_id = sysRule.id and
+		        staffInfo.corp_id = #{corpId} and
+                staffInfo.ding_staffid in           
+	               <foreach collection="staffIds" item="dingStaffId" 
+	                 index="i" open="(" separator="," close=")">
+					#{dingStaffId}
+				</foreach>            
+	</select>
+	
+	<!-- 提交编辑数据:批量修改多个人的薪资 以后的版本会有 -->
+	<update id="updateStaffInfo" parameterType="me.ywork.salary.model.SalInfoDetailModel">
+	     update
+	        dingsal_staff_monthsal
+	       set
+       	     should_pay_sal = #{staffSalInfo.ShouldPaySal}
+		   where 
+			 id = #{staffSalInfo.id}
+	</update> 
+	
+	<!-- 计算未设置薪资详情的人数 -->
+	<select id="calcuUnSetSalStaffNum" resultType="java.lang.Integer">
+	    select
+	      count(1) 
+	        from 
+	          ding_org_element e,
+			  dingsal_corp_info corpInfo
+		    where
+			  corpInfo.corp_id = e.fd_orgid and 
+			  corpInfo.corp_id=#{corpId} and 
+			  e.fd_org_type = 64 and
+			  e.fd_dingid not in 
+			  (
+			    select ding_staffid from dingsal_staff_info
+			    where corp_id =#{corpId}
+			  )
+	</select>
+	
+	<!-- 存储该员工的工资总数 -->
+	<update id="saveStaffShouldPaySal">
+	    update
+	      dingsal_staff_info 
+          set
+           should_pay_sal=#{shouldPaySal}
+          where 
+           corp_id=#{corpId} and
+           ding_staffid=#{staffId}
+	</update>
+</mapper>

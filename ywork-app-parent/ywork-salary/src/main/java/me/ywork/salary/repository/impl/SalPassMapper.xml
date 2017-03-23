@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="me.ywork.salary.repository.SalPassRepository">
+
+  <!-- 得到企业密码锁开启的状态 --> 
+  <select id="getCorpPasswordOpenStatus" resultType="java.lang.Short">
+     select pass_state 
+            from dingsal_corp_info
+            where corp_id = #{corpId}
+  </select>
+  
+  <!-- 根据员工的信息去模糊查询员工的信息-->
+  <select id="getStaffInfoByKeyword" resultType="me.ywork.salary.model.SalStaffBaseInfoModel">
+     select 
+         staffInfo.ding_staffid as dingStaffId,
+         e.fd_name as staffName,			          
+         pe.fd_name as deptName
+      from 
+		 dingsal_staff_info staffInfo,
+		 ding_org_element e INNER JOIN ding_org_element as pe
+		           on e.fd_parentid = pe.fd_id	
+      where
+        staffInfo.ding_staffid = e.fd_dingid and
+        e.fd_org_type = 64 and  
+        staffInfo.corp_id = #{corpId} and          
+        e.fd_name like CONCAT('%',#{keyword},'%')
+  </select>
+  
+  <!-- 对员工的密码进行重置 -->
+  <update id="resetStaffPassword">
+     update
+        dingsal_staff_info 
+        set 
+         staff_pass = null,
+         modified_date = #{modifiedDate}
+         where 
+            corp_id=#{corpId} and
+            ding_staffId=#{sal.id}                 
+  </update>
+  
+  <!-- 对部门的所有人员的密码进行重置 -->
+  <update id="resetDeptPassword">
+     update 
+        dingsal_staff_info 
+        set 
+	        staff_pass = null,
+	        modified_date = #{modifiedDate}
+        where
+           corp_id=#{corpId} and
+           ding_staffid  in
+           (       
+             select
+                 s.fd_dingid 
+                 from
+                  ding_org_element s INNER JOIN ding_org_element p
+                  on s.fd_parentid = p.fd_id
+             where 
+                   s.fd_orgid = #{corpId} and
+                   p.fd_orgid = #{corpId} and
+                   p.fd_dingid = #{deptId}
+          )               
+  </update>
+  
+  <!-- 更新企业的密码锁 -->
+  <update id="updateCorpPassStatus" parameterType="me.ywork.salary.model.SalCorpInfoModel">
+     update
+        dingsal_corp_info 
+        <set>
+           pass_state = #{passState},
+           modified_date = #{modifiedDate}
+        </set>
+        <where>
+           corp_id = #{corpId}
+        </where>
+  </update>
+
+  
+  <!-- 得到员工密码 -->
+  <select id="getUserPwd" resultType="java.lang.String">
+     select 
+       staff_pass 
+       from dingsal_staff_info info
+       where 
+          corp_id = #{corpId}  and
+          ding_staffid = #{dingStaffId}     
+  </select>
+  
+  <!-- 设置密码 -->
+  <update id="setUserPwd">
+     update 
+       dingsal_staff_info 
+       <set>
+          staff_pass = #{staffPass}
+       </set>
+       <where>
+          corp_id = #{corpId} and
+          ding_staffid = #{dingStaffId}
+       </where>        
+  </update>
+  
+  <!-- 开启关闭密码查看 -->
+   <update id="managerUserPwdState">
+     update 
+          dingsal_staff_info 
+     <set>
+          pass_state = #{passState},
+          <if test="passState == 0">
+            staff_pass = null
+          </if>
+    </set>
+     <where>
+        corp_id = #{corpId} and
+        ding_staffid = #{dingStaffId}
+     </where>        
+  </update>
+  
+</mapper>

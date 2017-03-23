@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="me.ywork.salarybill.repository.SalaryBillPwdSetRepository">
+	<!-- 定义的resultMap，可以解决类的属性名和数据库列名不一致的问题 -->
+	<resultMap type="SalaryBillPwdSet" id="salaryBillPwdSetResultMap">
+		<id property="id" column="id"/>
+		<result property="companyId" column="companyId"/>
+		<result property="userId" column="userId"/>
+		<result property="passwordType" column="passwordType"/>
+		<result property="password" column="password"/>
+		<result property="dingRandom" column="dingRandom"/>
+		<result property="needReset" column="needReset"/>
+		<result property="createUserId" column="createUserId"/>
+		<result property="createTime" column="createTime"/>
+		<result property="updateUserId" column="updateUserId"/>
+		<result property="updateTime" column="updateTime"/>
+		<result property="releaseTime" column="releaseTime"/>
+		<result property="errPwdCount" column="errPwdCount"/>
+		<result property="isNeedPasswd" column="isNeedPasswd"/>
+	</resultMap>
+
+	<!--所有字段列表 -->
+	<sql id="fields">
+		updateUserId,createTime,createUserId,needReset,password,passwordType,userId,companyId,id,updateTime,dingRandom,releaseTime,errPwdCount,isNeedPasswd
+	</sql>
+
+	<!--从实体中取值 -->
+	<sql id="values">
+		#{updateUserId},#{createTime},#{createUserId},#{needReset},#{password},#{passwordType},#{userId},#{companyId},#{id},#{updateTime},#{dingRandom},
+		#{releaseTime},#{errPwdCount},#{isNeedPasswd}
+	</sql>
+
+	<!-- insert语句 -->
+	<insert id="insert" parameterType="SalaryBillPwdSet" useGeneratedKeys="false"
+		keyProperty="id" keyColumn="id" >
+		insert into SalaryBillPwdSet(
+		<include refid="fields"></include>
+		)
+		values(
+		<include refid="values"></include>
+		)
+	</insert>
+
+	<!-- update语句 -->
+	<update id="update" parameterType="SalaryBillPwdSet">
+		Update salarybillpwdset Set 
+		updateUserId = #{updateUserId},
+		password = #{password},
+		userId = #{userId},
+		updateTime = #{updateTime} ,
+		dingRandom = #{dingRandom} ,
+		errPwdCount = #{errPwdCount},
+		releaseTime = #{releaseTime},
+		isNeedPasswd =#{isNeedPasswd}
+		Where companyId = #{companyId} AND id = #{id}
+	</update>
+
+
+	<!-- 根据ID删除数据 -->
+	<delete id="deleteById">
+		delete from SalaryBill where companyId = #{corpId} And id=#{id}
+	</delete>
+	
+
+	<!-- 根据ID查询实体 -->
+	<select id="findById" resultType="SalaryBillPwdSet">
+		Select
+		<include refid="fields"></include>
+		from SalaryBillPwdSet
+		where companyId = #{corpId} And 
+		      id = #{id}
+	</select>
+	
+
+	<!-- 根据ID判断实体是否存在 -->
+	<select id="exists" resultType="boolean">
+		Select 1
+		from SalaryBillPwdSet where companyId = #{corpId} And id = #{id}
+	</select>
+	
+	<!-- 根据ID判断实体是否存在 -->
+	<select id="existsUserPwd" resultType="SalaryBillPwdSet">
+		Select <include refid="fields"></include>
+		from SalaryBillPwdSet where 
+		companyId = #{companyId} 
+		<if test = "passwordType == 1 ">
+			And userId = #{userId} 
+		</if>
+		And passwordType = #{passwordType}
+		limit 1
+	</select>
+	
+	
+	<!-- 根据ID查询实体 -->
+	<select id="findSalaryBillPwdSetByUser" resultType="SalaryBillPwdSet">
+		Select
+		<include refid="fields"></include>
+		from SalaryBillPwdSet
+		where companyId = #{companyId}
+		     <if test = "passwordType == 1 ">
+				And userId = #{userId} 
+			</if>
+		     And passwordType = #{passwordType}
+	</select>
+	
+	<!-- 根据搜索词查询实体  	Select eu.fd_dingid as userId,eu.fd_no as userJobNum,eu.fd_name as userName,
+		 eu.fd_parentId as parentId, e.fd_name as deptName, LENGTH(e.fd_hierarchy_id) as pathLength
+		 from ding_org_element as e
+		INNER JOIN ding_org_element as eu on eu.fd_orgid = e.fd_orgid and 
+			FIND_IN_SET(e.fd_id, REPLACE(eu.fd_hierarchy_id, 'x', ',')) > 0 AND
+			eu.fd_org_type = 64
+		INNER JOIN ding_org_element as pe on pe.fd_orgid = eu.fd_orgid
+				and pe.fd_dingid= eu.fd_dingid
+				and pe.fd_org_type = 8 and pe.fd_is_available = 1
+			and (eu.fd_name like CONCAT('%',#{searchKey},'%') or eu.fd_no like CONCAT('%',#{searchKey},'%'))
+		 where e.fd_orgid = #{companyId} AND
+					 e.fd_org_type = 2 
+		order by eu.fd_dingid, eu.fd_parentId, pathLength -->
+		
+		<!-- 
+	<select id="findSalaryBillPwdBySerachKey" resultType="me.ywork.salarybill.model.UserModel">
+		Select  eu.fd_dingid as userId,eu.fd_name as userName,
+					eu.fd_hierarchy_id as hierarchy,eu.fd_no as userJobNum
+				 from ding_org_element as e
+		INNER JOIN ding_org_element as eu on eu.fd_orgid = e.fd_orgid and 
+					eu.fd_org_type = 64 and eu.fd_parentid = e.fd_id and eu.fd_hierarchy_id is not null
+		INNER JOIN ding_org_element as pe on pe.fd_orgid = eu.fd_orgid
+						and pe.fd_dingid= eu.fd_dingid
+						and pe.fd_org_type = 8 and pe.fd_is_available = 1
+						and (eu.fd_name like CONCAT('%',#{searchKey},'%') or eu.fd_no like CONCAT('%',#{searchKey},'%'))
+						
+				 where e.fd_orgid = #{companyId}  AND
+							 e.fd_org_type = 2 
+				order by eu.fd_parentid,eu.fd_dingid 
+				
+	</select>-->
+	
+	<select id="findSalaryBillPwdBySerachKey" resultType="me.ywork.salarybill.model.UserModel">
+		Select  eu.fd_dingid as userId,
+				eu.fd_name as userName ,
+				eu.fd_hierarchy_id as hierarchy,
+				eu.fd_no as userJobNum,
+				eu.fd_parentid as parentId
+		from  ding_org_element as eu 
+		where eu.fd_orgid = #{companyId} 
+		and eu.fd_org_type = 64    
+		and eu.fd_is_available = 1		
+		and (eu.fd_name like CONCAT('%',#{searchKey},'%') or eu.fd_no like CONCAT('%',#{searchKey},'%'))
+	</select>
+	
+	<!-- update语句 -->
+	<update id="updateUserPwd">
+		Update salarybillpwdset 
+		Set updateUserId = #{updateUserId},
+		password = #{password},
+		errPwdCount = 0,
+		releaseTime = null,
+		updateTime = now()
+		Where companyId = #{companyId} AND id = #{id}
+		AND passwordType = #{passwordType}
+	</update>
+	
+	
+	<!-- 根据ID判断实体是否存在 -->
+	<select id="isAvailable" resultType="String">
+		Select fd_name
+		from ding_org_element where fd_orgid = #{companyId} 
+		And fd_org_type = 8 
+		And fd_is_available = 1
+		and fd_dingid = #{userId}
+	</select>
+	
+	<!-- 根据ID判断实体是否存在 -->
+	<select id="findManager" resultType="String">
+		Select fd_dingid
+		from ding_org_element where fd_orgid = #{companyId} 
+		And fd_org_type = 8 
+		And fd_is_available = 1
+	</select>
+	
+    <insert id="saveNoneedPwdItems" useGeneratedKeys="false" keyProperty="id">
+     
+			 DELETE FROM SalaryBillNoPwdSelectedItem
+			 WHERE companyId = #{companyId}; 
+		<!-- 批量插入主表 -->
+		<if test="itemList != null">
+			insert into SalaryBillNoPwdSelectedItem (id,companyId,eid,name,type,createUserId,createDate) 
+			    values
+			    <foreach collection="itemList" index="i" item="item" open="" close="" separator=",">
+			    	(
+			    		#{item.id},#{item.companyId},#{item.eid},#{item.name},#{item.type},#{item.createUserId},#{item.createDate}
+			    	)
+			    </foreach>
+			    ;
+		</if>
+	</insert>
+	
+	
+	<select id="findDingPersonByUserId" resultType="me.ywork.salarybill.model.UserTempModel">
+		Select fd_id as id ,
+		       fd_dingid as userId,
+		       fd_name as userName,
+		       fd_hierarchy_id as hierarchyId
+		       from ding_org_element
+		where fd_orgid = #{companyId} And 
+		      fd_dingid = #{userId} And
+		      fd_hierarchy_id is not null
+	</select>
+    
+    <select id="findNoneedPwdItems" resultType="me.ywork.salarybill.model.SalaryBillNoPwdSelectedItemViewMode">
+        select
+        eid as id,
+        name as name,
+        type as type
+        from  
+           SalaryBillNoPwdSelectedItem where 
+                      companyId = #{companyId} 
+    </select>
+    
+    <update id="updateUserPwdOpenStatus" >
+     	<if test="userList != null">
+    			Update salarybillpwdset 
+						Set isNeedPasswd= #{isNeedPwd},
+						errPwdCount = 0,
+						password="",
+						releaseTime = null,
+						updateTime = now()
+						Where companyId = #{companyId} 
+						AND userid in  
+						(
+						    <foreach collection="userList" index="i" item="u" separator=",">
+							    #{u}
+							</foreach>
+						)
+						AND passwordType = #{passwordType}
+		</if>
+    </update>
+    
+    <select id="findChildPerson" resultType="String">
+       select distinct p.fd_dingid
+		from  ding_org_element p,ding_org_element d
+		where p.fd_orgid = d.fd_orgid
+		and p.fd_is_available = 1 
+		and p.fd_org_type = 64   
+		and p.fd_orgid='ding2585e7fd381d17fe'
+		and p.fd_hierarchy_id like CONCAT('%x',d.fd_id,'x%') 
+		And d.fd_dingid in  
+		(
+		    <foreach collection="deptList" index="i" item="u" separator=",">
+			    #{u}
+			</foreach>
+		)
+
+    </select>
+    
+    
+     <select id="needPwd" resultType="String">
+       select eid from salarybillnopwdselecteditem 
+		where companyid = #{companyId}
+		and eid = #{eid}
+		and type = 8
+		union ALL 
+		select d.fd_dingid from 
+		ding_org_element p ,ding_org_element d,salarybillnopwdselecteditem i
+		where p.fd_orgid = d.fd_orgid
+		and p.fd_is_available = 1 
+		and p.fd_org_type = 64   
+		and p.fd_orgid = #{companyId}
+		and p.fd_hierarchy_id like CONCAT('%x',d.fd_id,'x%') 
+		and p.fd_dingid = #{eid}
+		and i.type = 2
+		and i.eid = d.`fd_dingid` 
+		and i.companyId = d.fd_orgid
+    </select>
+    
+    <delete id="doReset">
+       DELETE FROM SalaryBillNoPwdSelectedItem
+			 WHERE companyId = #{companyId}
+			 <if test="eid != null and eid != '' ">
+				And eid = #{eid} 
+			</if>
+    </delete>
+    
+</mapper>

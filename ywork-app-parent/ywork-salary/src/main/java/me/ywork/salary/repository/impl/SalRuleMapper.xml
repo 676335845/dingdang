@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="me.ywork.salary.repository.SalRuleRepository">
+
+   <!-- table:dingsal_sys_salrule  系统薪资规则表-->
+   <sql id="sys_salrule_field" >
+     id,sal_rule_des,sal_rule_name,sal_rule_type,
+     create_date,modified_date
+   </sql>
+   <sql id="sys_salrule_value" >
+     #{id},#{salRuleDes},#{salRuleName},#{salRuleType},
+     #{createDate},#{modifiedDate}
+   </sql>
+   
+   <!-- table:dingsal_corp_baserule 企业基本薪资规则表-->
+   <sql id="corp_baserule_field" >
+     id,cal_sal_days,fit_nums,corp_id,create_date,
+     modified_date,sal_rule_id,has_set
+   </sql>
+   
+   <sql id="corp_baserule_value">
+     #{id},#{calSalDays},#{fitNums},#{corpId},#{createDate},
+     #{modifiedDate},#{salRuleId},#{hasSet}
+   </sql>
+       
+    <!-- table dingsal_corp_deductrule 企业考勤扣款规则表-->
+    <sql id="corp_deductrule_fields">
+       late_early_deduct_type,late_early_deduct,serious_late_deduct,
+       stay_away_deduct,corp_id,create_date,modified_date,
+       stay_away_deduct_type,lack_deduct_type,lack_deduct,has_set
+    </sql>
+    
+    <sql id="corp_deductrule_values">
+     #{lateEarlyDeductType},#{lateEarlyDeduct},#{seriousLateDeduct},
+     #{stayAwayDeduct},#{corpId},#{createDate},#{modifiedDate},
+     #{stayAwayDeductType},#{lackDeductType},#{lackDeduct},#{hasSet}
+    </sql>
+    
+   <!-- table:dingsal_corp_whprule 企业代缴代扣薪资规则表 -->
+   <sql id="corp_whprule_field">
+     id,subject_id,base_low,base_high,corp_percent,
+     personal_percent,corp_id,create_date,modified_date,has_set
+   </sql>
+   
+   <sql id="corp_whprule_value">
+     #{id},#{subject_id},#{base_low},#{base_high},
+     #{corp_percent},#{personal_percent},#{corp_id},
+     #{create_date},#{modified_date},#{hasSet}
+   </sql>
+   
+    <!-- 系统级别的薪资规则列表 MAP-->
+    <resultMap id="SalSysRuleMap" type="me.ywork.salary.model.SalSysRuleModel">
+       <id column="id" property="id"/>
+       <result column="sal_rule_des" property="salRuleDes"/>
+       <result column="sal_rule_name" property="salRuleName"/>
+       <result column="sal_rule_type" property="salRuleType"/>
+       <result column="create_date" property="create_date"/>
+       <result column="modified_date" property="modifiedDate"/>
+    </resultMap>
+    
+    <!-- 企业基本的薪资规则列表的MAP -->
+    <resultMap id="SalBaseRuleMap" type="me.ywork.salary.model.SalCorpBaseSalRuleModel">
+        <id column="id" property="id"/>
+        <result column="sal_rule_name" property="salRuleName"/>
+        <result column="sal_rule_des" property="salRuleDes"/>
+        <result column="sal_rule_type" property="salRuleType"/>
+        <result column="sal_rule_id" property="salRuleId"/>
+        <result column="fit_nums" property="fitNums"/>
+        <result column="cal_sal_days" property="calSalDays"/>
+        <result column="has_set" property="hasSet"/>
+	    <result column="corp_id" property="corpId"/>
+     </resultMap>
+     
+     <!-- 考勤扣款规则MAP-->
+     <resultMap id="deductRuleMap" type="me.ywork.salary.model.SalCorpDeductModel">
+         <id column="id" property="id"/>
+	    <result column="late_early_deduct_type" property="lateEarlyDeductType"/>
+	    <result column="late_early_deduct" property="lateEarlyDeduct"/>
+	    <result column="serious_late_deduct" property="seriousLateDeduct"/>
+	    <result column="stay_away_deduct" property="stayAwayDeduct"/>
+	    <result column="corp_id" property="corpId"/>
+	    <result column="stay_away_deduct_type" property="stayAwayDeductType"/>
+	    <result column="lack_deduct_type" property="lackDeductType"/>
+	    <result column="lack_deduct" property="lackDeduct"/>
+	    <result column="create_date" property="createDate"/>
+	    <result column="has_set" property="hasSet"/>
+	    <result column="modified_date" property="modifiedDate"/>
+     </resultMap>
+     
+     <!-- 企业代缴代扣的薪资规则的MAP -->
+     <resultMap id="SalCwhpRuleMap" type="me.ywork.salary.model.SalCorpWhpRuleModel">
+        <id column="id" property="id"/>
+        <result column="subject_id" property="subjectId"/>
+        <result column="item_name" property="subjectName"/>
+        <result column="base_low" property="baseLow"/>
+        <result column="base_high" property="baseHigh"/>
+        <result column="corp_percent" property="corpPercent"/>
+        <result column="personal_percent" property="personalPercent"/>
+        <result column="corp_id" property="corpId"/>
+        <result column="create_date" property="createDate"/>
+        <result column="has_set" property="hasSet"/>
+        <result column="modified_date" property="modifiedDate"/>
+     </resultMap>
+     
+     <!-- 企业代缴代扣的薪资规则的MAP（实体） -->
+     <resultMap id="SalCwhpRuleEntityMap" type="me.ywork.salary.entity.SalCorpWhpRuleEntity">
+        <id column="id" property="id"/>
+        <result column="subject_id" property="subjectId"/>
+        <result column="base_low" property="baseLow"/>
+        <result column="base_high" property="baseHigh"/>
+        <result column="corp_percent" property="corpPercent"/>
+        <result column="personal_percent" property="personalPercent"/>
+        <result column="corp_id" property="corpId"/>
+        <result column="create_date" property="createDate"/>
+        <result column="has_set" property="hasSet"/>
+        <result column="modified_date" property="modifiedDate"/>
+     </resultMap>
+     
+    
+    <!-- 获取所有的基本记薪规则 -->
+   <select id="getAllSalRules" resultMap="SalBaseRuleMap">
+     select 
+       sysRule.sal_rule_name,
+       sysRule.sal_rule_des,
+       sysRule.sal_rule_type,
+       baseRule.sal_rule_id,
+       baseRule.has_set,
+       baseRule.cal_sal_days,
+       baseRule.fit_nums,
+       baseRule.id
+       from 
+          dingsal_corp_baserule baseRule,
+          dingsal_sys_salrule sysRule
+       where 
+          baseRule.sal_rule_id = sysRule.id and
+          baseRule.corp_id=#{corpId}       
+   </select>
+   
+   <!-- 保存基本计薪规则 -->
+	<update id="updateSalRule" parameterType="me.ywork.salary.model.SalCorpBaseSalRuleModel">
+	  update 
+	     dingsal_corp_baserule
+	  set	        	 
+   	     cal_sal_days = #{calSalDays},
+   	     has_set = #{hasSet},
+   	     modified_date =#{modifiedDate}
+	  where 
+	     id = #{id}
+    </update> 
+    
+    <!-- 得到基本计薪规则-->
+    <select id = "getCorpSalRuleByRuleId" resultMap="SalBaseRuleMap">
+        select  
+            id,
+            cal_sal_days,
+     	    fit_nums,
+     	    has_set,
+	        corp_id
+	        from dingsal_corp_baserule
+	    where
+          corp_id = #{corpId} and 
+          id=#{ruleId} 
+    </select>
+    
+    <!-- 得到企业代缴代扣规则列表 -->
+    <select id="getCwhpRuleList" resultMap="SalCwhpRuleMap">
+        select 
+           salRule.id,
+           salRule.subject_Id,
+           fieldItem.item_name,
+           salRule.base_low,
+           salRule.base_high,
+           salRule.corp_percent,
+           salRule.personal_percent,
+           salRule.corp_id,
+           salRule.has_set,
+           salRule.create_date,
+           salRule.modified_date
+        from
+            dingsal_corp_whprule salRule,
+            dingsal_sys_fielditem fieldItem
+        where
+           salRule.subject_id = fieldItem.id and
+           salRule.corp_id = #{corpId}                         
+    </select>
+    
+    
+    <!-- 更新企业代缴代扣规则 -->
+    <select id="getCwhpRuleEntity" resultMap="SalCwhpRuleEntityMap">
+        select * 
+           from dingsal_corp_whprule
+            where id=#{id}
+    </select>
+    
+    
+    <!-- 更新社保公积金的规则  -->
+    <update id="updateCwhpRule" parameterType="me.ywork.salary.model.SalCorpWhpRuleModel">
+         update dingsal_corp_whprule
+          <set>
+	               base_low = #{baseLow},
+	               base_high = #{baseHigh},
+	           <if test="corpPercent !=null">
+	              corp_percent = #{corpPercent},
+	           </if>
+	           <if test="personalPercent != null">
+	               personal_percent = #{personalPercent},
+	           </if>
+	           <if test="modifiedDate !=null">
+	               modified_date = #{modifiedDate},
+	           </if>
+	           <if test="hasSet !=null">
+	               has_set = #{hasSet}
+	           </if>
+          </set>
+           <where>
+                id= #{id}
+           </where>           
+    </update>
+    
+    <!-- 查找企业的考勤扣款规则 -->
+    <select id="getCorpdeductRule" resultMap="deductRuleMap">
+      select *from
+           dingsal_corp_deductrule 
+      where 
+         corp_id=#{corpId}
+    </select>
+    
+    
+    <!-- 更新企业考勤扣款的规则 -->
+    <update id="updateCorpDeductRule" parameterType="me.ywork.salary.model.SalCorpDeductModel">
+       update dingsal_corp_deductrule 
+         <set>
+             late_early_deduct_type = #{lateEarlyDeductType},
+             late_early_deduct = #{lateEarlyDeduct},
+             serious_late_deduct = #{seriousLateDeduct},
+             stay_away_deduct = #{stayAwayDeduct},
+             modified_date = #{modifiedDate},
+             stay_away_deduct_type = #{stayAwayDeductType},
+             lack_deduct_type = #{lackDeductType},
+             lack_deduct=#{lackDeduct},
+             <if test="hasSet == 0">
+                 has_set=1
+             </if>
+         </set>
+          <where>
+             corp_id=#{corpId}
+          </where>
+    </update>
+    
+    <!-- 得到基本规则是正算还是反算的值 -->
+    <select id="getRuleTypeByCorpBsRuleId" resultType="java.lang.Short">
+       select
+          sal_rule_type
+        from dingsal_sys_salrule 
+        where id = 
+          (
+	          select 
+	            sal_rule_id 
+	          from   
+	            dingsal_corp_baserule
+	          where id=#{id}
+          )
+    </select>
+    
+    <!-- 得到企业某规则下的适用人数 -->
+    <select id="getCorpRuleFitNum" resultType="java.lang.Integer">
+       select count(info.id)
+            from dingsal_staff_info info,
+                 ding_org_element e
+            where
+              <if test="bsRuleId !=null">
+                info.corp_bs_ruleid=#{bsRuleId} and
+              </if>
+              <if test="type == 0">
+                info.atten_social =1 and
+              </if>
+              <if test="type == 1">
+                info.atten_personal_tax =1 and
+              </if>            
+                info.corp_id=#{corpId} and
+                info.ding_staffid=e.fd_dingid and
+                e.fd_orgid=#{corpId} and
+                e.fd_org_type=8
+    </select>
+</mapper>

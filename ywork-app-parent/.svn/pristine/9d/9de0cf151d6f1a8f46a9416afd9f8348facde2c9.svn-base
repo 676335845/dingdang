@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="me.ywork.salarybill.repository.SalaryBillItemRepository">
+	<!-- 定义的resultMap，可以解决类的属性名和数据库列名不一致的问题 -->
+	<resultMap type="SalaryBillItem" id="salaryBillItemResultMap">
+		<id property="id" column="id"/>
+		<result property="companyId" column="companyId"/>
+		<result property="itemName" column="itemName"/>
+		<result property="itemValue" column="itemValue"/>
+		<result property="serNo" column="serNo"/>
+		<result property="salaryBillId" column="salaryBillId"/>
+	</resultMap>
+
+	<!--所有字段列表 -->
+	<sql id="fields">
+		companyId,itemName,itemValue,serNo,salaryBillId,id
+	</sql>
+
+	<!--从实体中取值 -->
+	<sql id="values">
+		#{companyId},#{itemName},#{itemValue},#{serNo},#{salaryBillId},#{id}
+	</sql>
+
+	<!-- insert语句 -->
+	<insert id="insert" parameterType="SalaryBillItem" useGeneratedKeys="false"
+		keyProperty="id" keyColumn="id" >
+		insert into SalaryBillItem(
+		<include refid="fields"></include>
+		)
+		values(
+		<include refid="values"></include>
+		)
+	</insert>
+
+	<!-- update语句 -->
+	<update id="update" parameterType="SalaryBillItem">
+		Update SalaryBillItem Set itemName = #{itemName},itemValue = #{itemValue} 
+		Where companyId = #{companyId} AND id = #{id}
+	</update>
+
+
+	<!-- 根据ID删除数据 -->
+	<delete id="deleteById">
+		delete from SalaryBillItem where companyId = #{corpId} And id=#{id}
+	</delete>
+	
+
+	<!-- 根据ID查询实体 -->
+	<select id="findById" resultType="SalaryBillItem">
+		Select
+		<include refid="fields"></include>
+		from SalaryBillItem
+		where companyId = #{corpId} And 
+		      id = #{id}
+	</select>
+	
+
+	<!-- 根据ID判断实体是否存在 -->
+	<select id="exists" resultType="boolean">
+		Select 1
+		from SalaryBillItem where companyId = #{companyId} And id = #{id}
+	</select>
+	
+	<!-- 根据salaryid查询集合 -->
+	<select id="getSalaryItemsBySalaryBillId" resultType="me.ywork.salarybill.model.SalaryBillItemModel">
+		Select
+		<include refid="fields"></include>
+		from SalaryBillItem
+		where companyId = #{companyId} And 
+		      salaryBillId = #{salaryBillId} 
+		      order by serNo
+	</select>
+	
+	
+	<select id="getSalaryItemsBySalaryBillLogId" resultType="me.ywork.salarybill.model.SalaryBillItemModel">
+		Select i.itemName,i.itemValue,i.serNo,i.salaryBillId,i.id,b.realSalary,b.id as billId
+		from SalaryBillItem i,SalaryBill b,salarybilllog l
+		where i.companyid = b.companyid
+		and i.salarybillid = b.id
+		and b.companyid = l.companyid
+		and b.salaryBillLogId = l.id
+		and i.companyId = #{companyId}  
+		And l.id = #{logId}  
+		and b.userid = #{userId}
+		order by salaryBillId,serNo
+	</select>
+	
+	
+	
+</mapper>

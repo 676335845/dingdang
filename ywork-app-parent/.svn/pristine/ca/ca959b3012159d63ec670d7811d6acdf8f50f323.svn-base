@@ -1,0 +1,4 @@
+#dubboRegistryAddress = zookeeper://zookeeper01:2181
+dubboRegistryAddress = zookeeper://10.28.42.166:5005
+
+dubboProtocolPort = 20888

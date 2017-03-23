@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper
+	namespace="me.ywork.org.realtime.repository.DingOrgElementRepository">
+	<resultMap id="elementResultMap"
+		type="me.ywork.org.realtime.entity.DingOrgElement">
+		<id property="id" jdbcType="VARCHAR" column="fd_id" />
+		<result property="fdName" jdbcType="VARCHAR" column="fd_name" />
+		<result property="fdOrder" column="fd_order" />
+		<result property="fdOrgid" jdbcType="VARCHAR" column="fd_orgid" />
+		<result property="fdDingid" column="fd_dingid" />		
+		<result property="fdOrgType" column="fd_org_type" />
+		<result property="fdNo" jdbcType="VARCHAR" column="fd_no" />
+		<result property="fdIsAvailable" jdbcType="BOOLEAN" column="fd_is_available" />
+		<result property="fdIsSync" jdbcType="BOOLEAN" column="fd_is_sync" />
+		<result property="fdImportInfo" jdbcType="VARCHAR" column="fd_import_info" />
+		<result property="fdIsAbandon" jdbcType="BOOLEAN" column="fd_is_abandon" />
+		<result property="fdFlagDeleted" jdbcType="BOOLEAN" column="fd_flag_deleted" />
+		<result property="fdMemo" jdbcType="VARCHAR" column="fd_memo" />
+		<result property="fdHierarchyId" jdbcType="VARCHAR" column="fd_hierarchy_id" />
+		<result property="fdCreateTime" jdbcType="TIMESTAMP" column="fd_create_time" />
+		<result property="fdAlterTime" jdbcType="TIMESTAMP" column="fd_alter_time" />
+		<result property="fdParentid" jdbcType="VARCHAR" column="fd_parentid" />
+		
+		<discriminator javaType="int" column="fd_org_type">
+			<case value="2"
+				resultType="me.ywork.org.realtime.entity.DingOrgDept">
+			</case>
+			<case value="8"
+				resultType="me.ywork.org.realtime.entity.DingOrgUser">
+				<result property="fdIsAdmin" column="fd_is_admin" />
+				<result property="fdIsSupAdmin" column="fd_is_sup_admin" />
+				<result property="fdIsBoss" column="fd_is_boss" />
+				<result property="fdIsLeader" column="fd_is_leader" />
+				<result property="fdAvatar" column="fd_avatar" />
+				<result property="fdUserid" column="fd_userid" />
+				<result property="fdPosition" column="fd_position" />
+				<result property="fdMobile" column="fd_mobile" />
+				<result property="fdEmail" column="fd_email" />
+			</case>
+			<case value="64" 
+				resultType="me.ywork.org.realtime.entity.DingOrgActor">
+			</case>
+		</discriminator>
+	</resultMap>
+	
+	<select id="loadElement"  resultMap="elementResultMap">
+		SELECT * FROM ding_org_element t1
+		left join ding_org_user t2 on
+		t1.FD_ID = t2.FD_ID
+		WHERE t1.fd_orgid = #{0} and t1.FD_ID = #{1} and t2.fd_orgid = #{0}
+	</select>
+	
+	<select id="loadElementByImportInfo"  resultMap="elementResultMap">
+		SELECT * FROM ding_org_element WHERE fd_orgid = #{0} and fd_import_info = #{1} limit 1
+	</select>
+	
+
+	<!-- 查询用户 -->
+	<select id="loadUser" resultMap="elementResultMap" >
+		SELECT * FROM ding_org_user t1
+		left join ding_org_element t2 on
+		t1.FD_ID = t2.FD_ID
+		WHERE t1.fd_orgid = #{0} and (t1.FD_ID = #{1}) and t2.fd_orgid = #{0} 
+	</select>
+	
+	<!-- 查询用户 -->
+	<select id="loadDept" resultMap="elementResultMap" >
+		SELECT * FROM ding_org_element WHERE fd_orgid = #{0} and fd_id = #{1}
+	</select>
+	
+	<!-- 根据钉钉id查询部门 -->
+	<select id="getDeptByDingId" resultMap="elementResultMap" >
+		SELECT * FROM ding_org_element WHERE fd_orgid = #{0} and fd_dingid = #{1}
+	</select>
+	
+	<!-- 查询用户分身 -->
+	<select id="loadActorsForUser" resultMap="elementResultMap" >
+		SELECT * FROM ding_org_actor t1
+		left join ding_org_element t2 on
+		t1.FD_ID = t2.FD_ID
+		WHERE (t1.fd_orgid = #{0} and t1.fd_actoruser_id = #{1} ) and t2.fd_orgid = #{0}
+	</select>
+	
+	<!-- 根据钉钉商户ID和员工userId查找员工 -->
+	<select id="findDingOrgUserByCorpIdUserId" resultMap="elementResultMap">
+		SELECT * FROM ding_org_element t1
+		left join ding_org_user t2 on
+		t1.FD_ID = t2.FD_ID
+		WHERE t1.fd_orgid = #{0} and t2.fd_orgid = #{0} and (t2.fd_userid = #{1})
+	</select>
+	
+	<!-- 根据钉钉返回的员工userId查询蓝凌人员列表 -->
+	<select id="getDingOrgUsersByCorpIdUserIds" resultMap="elementResultMap">
+		Select * from ding_org_user where fd_orgid = #{0} and fd_userid in
+		<foreach collection="list" item="userId" index="index" open="(" close=")" separator=",">
+		#{userId}
+		</foreach>
+	</select>
+	
+	<!--用于压力测试，随机获取指定企业的部门ID -->
+	<select id="getRandomDeptId"  resultType="java.lang.String">		
+		select fd_id
+		 from ding_org_element
+		 	where fd_orgid = #{0} And
+		 		  fd_org_type = 2 And
+		 	      rand() > #{1}
+		   limit 1
+	</select>
+	
+	<!--用于压力测试，获取指定企业部门下面的所有人员列表 -->
+	<select id="getDingOrgUserVosByCompanyIdDeptId" resultType="java.lang.String">
+		select fd_actoruser_id from ding_org_actor where fd_id in(
+			select fd_id from ding_org_element 
+			where fd_orgid =#{0} And fd_org_type = 64 And 
+			fd_parentid = #{1} limit #{2})
+	</select>
+	
+	<!-- 查找岗位成员-->
+	<select id="loadPostPersons" resultMap="elementResultMap">
+		SELECT * FROM ding_org_element t1
+		left join ding_org_user t2 on
+		t1.FD_ID = t2.FD_ID
+		WHERE t1.fd_orgid = #{0} and t2.fd_orgid = #{0} and (t2.FD_ID in (
+			select fd_personid from ding_org_post_person where fd_orgid = #{0} and fd_postid = #{1}
+		))
+	</select>
+	
+	<delete id="deleteElementById" >
+		DELETE FROM ding_org_user WHERE fd_orgid = #{0} and fd_id = #{1};
+		DELETE FROM ding_org_actor WHERE fd_orgid = #{0} and fd_id = #{1};
+		DELETE FROM ding_org_element WHERE fd_orgid = #{0} and fd_id = #{1}
+	</delete>
+	
+	<!-- 删除 -->
+	<delete id="deleteElement" parameterType="me.ywork.org.realtime.entity.DingOrgElement">
+		<choose>
+			<when test="fdOrgType=8">
+				DELETE FROM ding_org_user WHERE fd_orgid = #{fdOrgid} and fd_id = #{id};
+			</when>
+			<when test="fdOrgType=64">
+				DELETE FROM ding_org_actor WHERE fd_orgid = #{fdOrgid} and fd_id = #{id};
+			</when>
+		</choose>
+		DELETE FROM ding_org_element WHERE fd_orgid = #{fdOrgid} and fd_id = #{id}
+	</delete>
+	
+	<!-- 插入 -->
+	<insert id="insert" keyProperty="id"
+		parameterType="me.ywork.org.realtime.entity.DingOrgElement">
+		INSERT INTO ding_org_element (
+		fd_id,
+		fd_orgid,
+		fd_order,
+		fd_org_type,
+		fd_no,
+		fd_name,
+		fd_is_available,
+		fd_is_abandon,
+		fd_flag_deleted,
+		fd_hierarchy_id,
+		fd_create_time,
+		fd_alter_time,
+		fd_import_info,
+		fd_dingid,
+		fd_parentid
+		) VALUES (
+		#{id} ,
+		#{fdOrgid},
+		#{fdOrder},
+		#{fdOrgType} ,
+		#{fdNo},
+		#{fdName} ,
+		#{fdIsAvailable} ,
+		#{fdIsAbandon},
+		#{fdFlagDeleted},
+		#{fdHierarchyId} ,
+		#{fdCreateTime} ,
+		#{fdAlterTime},
+		#{fdImportInfo},
+		#{fdDingid},				
+		#{fdParentid}
+		);
+		<if test="fdOrgType==8">
+			INSERT INTO ding_org_user (
+				fd_id,
+				fd_orgid,
+				fd_is_admin,
+				fd_is_boss,
+				fd_openid,
+				fd_avatar,
+				fd_userid,
+				fd_position,
+				fd_email
+			) VALUES (
+				#{id} ,
+				#{fdOrgid},
+				#{fdIsAdmin} ,
+				#{fdIsBoss} ,
+				#{fdOpenid},
+				#{fdAvatar},
+				#{fdUserid},
+				#{fdPosition},
+				#{fdEmail}
+			)
+		</if>
+		
+		<if test="fdOrgType==64">
+			<if test="fdUser != null">
+				INSERT INTO ding_org_actor (
+					fd_id,
+					fd_orgid,
+					fd_actoruser_id
+				) VALUES (
+					#{id} ,
+					#{fdOrgid},
+					#{fdUser.id}
+				)
+			</if>
+		</if>
+	</insert>
+	
+	<!-- 更新 -->
+	<update id="updateSelective"
+		parameterType="me.ywork.org.realtime.entity.DingOrgElement">
+		UPDATE ding_org_element
+		<set>
+			<if test="fdName!=null">
+				fd_name = #{fdName} ,
+			</if>
+			<if test="fdIsAvailable!=null">
+				fd_is_available = #{fdIsAvailable} ,
+			</if>
+			<if test="fdHierarchyId!=null">
+				fd_hierarchy_id = #{fdHierarchyId} ,
+			</if>
+			<if test="fdParentid!=null">
+				fd_parentid = #{fdParentid} ,
+			</if>
+			<if test="fdOrder != null">
+				fd_order = #{fdOrder} ,
+			</if>
+			<if test="fdNo != null">
+				fd_no = #{fdNo} ,
+			</if>
+			<if test="fdFlagDeleted != null">
+				fd_flag_deleted = #{fdFlagDeleted} ,
+			</if>
+			<if test="fdAlterTime!=null">
+				fd_alter_time = #{fdAlterTime}
+			</if>
+		</set>
+		WHERE fd_orgid = #{fdOrgid} and fd_id = #{id};
+		<if test="fdOrgType==8">
+			UPDATE ding_org_user
+			<set>
+				<if test="fdAvatar !=null">
+					fd_avatar = #{fdAvatar} ,
+				</if>
+				<if test="fdPosition !=null">
+					fd_position = #{fdPosition} ,
+				</if>
+				<if test="fdEmail !=null">
+					fd_email = #{fdEmail} ,
+				</if>
+				<if test="fdIsBoss !=null">
+					fd_is_boss = #{fdIsBoss} ,
+				</if>
+				fd_is_admin = #{fdIsAdmin}
+			</set>
+			WHERE fd_orgid = #{fdOrgid} and fd_id = #{id}
+		</if>
+	</update>
+	
+	<!-- upsert -->
+	<insert id="batchUpdateSelective" keyProperty="id" parameterType="me.ywork.org.realtime.entity.DingOrgElement">
+		INSERT INTO ding_org_element (
+		fd_id, fd_orgid, fd_order, fd_org_type, fd_no,
+		fd_name, fd_is_available,fd_is_sync, fd_is_abandon, fd_flag_deleted,
+		fd_hierarchy_id, fd_create_time, fd_alter_time,
+		fd_import_info, fd_dingid, fd_parentid
+		) VALUES 
+		 <foreach collection="elements" index="i" item="e" open="" close="" separator=",">
+	    	(
+	    		#{e.id} , #{e.fdOrgid}, #{e.fdOrder},
+				#{e.fdOrgType} , #{e.fdNo}, #{e.fdName} ,
+				#{e.fdIsAvailable} ,#{e.fdIsSync} , #{e.fdIsAbandon},
+				#{e.fdFlagDeleted}, #{e.fdHierarchyId} ,
+				#{e.fdCreateTime} , #{e.fdAlterTime},
+				#{e.fdImportInfo}, #{e.fdDingid},#{e.fdParentid}
+	    	)
+		</foreach>
+		ON DUPLICATE KEY UPDATE 
+			<if test="e.fdName!=null">
+				fd_name = VALUES(fd_name),
+			</if>
+			<if test="e.fdIsAvailable!=null">
+				fd_is_available = VALUES(fd_is_available),
+			</if>
+			<if test="e.fdIsSync!=null">
+				fd_is_sync = VALUES(fd_is_sync),
+			</if>
+			<if test="e.fdHierarchyId!=null">
+				fd_hierarchy_id = VALUES(fd_hierarchy_id),
+			</if>
+			<if test="e.fdParentid!=null">
+				fd_parentid = VALUES(fd_parentid),
+			</if>
+			<if test="e.fdOrder != null">
+				fd_order = VALUES(fd_order),
+			</if>
+			<if test="e.fdNo != null">
+				fd_no = VALUES(fd_no),
+			</if>
+			<if test="e.fdFlagDeleted != null">
+				fd_flag_deleted = VALUES(fd_flag_deleted),
+			</if>
+			fd_alter_time = VALUES(fd_alter_time);
+			
+		<if test="fdOrgType==8">
+			INSERT INTO ding_org_user (
+				fd_id, fd_orgid, fd_is_admin,
+				fd_is_boss, fd_is_leader, fd_avatar,
+				fd_userid, fd_position, fd_email
+			) VALUES 
+			<foreach collection="elements" index="i" item="e" open="" close="" separator=",">
+	    	(
+	    		#{e.id} , #{e.fdOrgid},
+				#{e.fdIsAdmin} , #{e.fdIsBoss} , #{e.fdIsLeader} ,
+				#{e.fdAvatar}, #{e.fdUserid},
+				#{e.fdPosition}, #{e.fdEmail}
+	    	)
+		</foreach>
+			ON DUPLICATE KEY UPDATE 
+				fd_is_admin=VALUES(fd_is_admin),
+				fd_is_boss=VALUES(fd_is_boss),  
+				fd_is_leader=VALUES(fd_is_leader),  
+				fd_position=VALUES(fd_position) ,
+				fd_avatar=VALUES(fd_avatar) ,
+				fd_email=VALUES(fd_email);
+		</if>
+	</insert>
+	
+	<insert id="batchUpsertActors" parameterType="me.ywork.org.realtime.entity.DingOrgElement">
+			INSERT IGNORE INTO ding_org_actor (
+					fd_id,
+					fd_orgid,
+					fd_actoruser_id
+				) VALUES 
+				<foreach collection="elements" index="i" item="e" open="" close="" separator=",">
+			    	(
+			    		#{e.id} , #{e.fdOrgid},#{e.fdUser.id} 
+			    	)
+			    </foreach>	
+	</insert>
+	
+	<!-- 更新corp user 主管理员 -->
+	<update id="updateCorpSupAdmin" >
+		update ding_org_user set fd_is_sup_admin = 0 where fd_orgid = #{0} and fd_is_sup_admin = 1;
+		update ding_org_user set fd_is_sup_admin = 1 where fd_orgid = #{0} and fd_userid = #{1}
+	</update>
+	
+	<update id="updateUnavailableByOrgId">
+	<![CDATA[
+		UPDATE ding_org_element set fd_is_available = 0  ,fd_is_sync = 0 where fd_orgid = #{0} and fd_alter_time < #{1};
+	]]>
+	</update>
+	
+	<update id="updateAdmin">
+	<![CDATA[
+		UPDATE ding_org_user set fd_is_admin = #{2} where fd_orgid = #{0} and fd_userid = #{1};
+	]]>
+	</update>
+	
+	<update id="updateUnavailableByDingId">
+			UPDATE ding_org_element set fd_is_available = 0 where fd_orgid = #{orgId} and fd_dingid in
+			<foreach collection="userIds" item="userId" index="index" open="(" close=")" separator=",">
+	            #{userId}
+	        </foreach>
+	</update>
+	
+	<select id="loadUnavailableByOrgId" resultType="java.lang.String">
+	<![CDATA[ 
+		SELECT t1.fd_import_info FROM ding_org_element t1
+		WHERE t1.fd_orgid = #{0} and t1.fd_alter_time < #{1};
+	]]>
+	</select>
+	
+	<update id="updateAlterTime"
+		parameterType="me.ywork.org.realtime.entity.DingOrgElement">
+		UPDATE ding_org_element
+		<set>
+			fd_name = #{fdName},
+			fd_no = #{fdNo},
+			fd_parentid = #{fdParentid},
+			fd_hierarchy_id = #{fdHierarchyId},
+			fd_is_available = #{fdIsAvailable},
+			fd_alter_time = #{fdAlterTime}
+		</set>
+		WHERE fd_orgid = #{fdOrgid} and fd_id = #{id};
+	</update>
+	
+	<!-- upsert -->
+	<insert id="upsert" keyProperty="id"
+		parameterType="me.ywork.org.realtime.entity.DingOrgElement">
+		INSERT INTO ding_org_element (
+		fd_id,
+		fd_orgid,
+		fd_order,
+		fd_org_type,
+		fd_no,
+		fd_name,
+		fd_is_available,
+		fd_is_abandon,
+		fd_flag_deleted,
+		fd_hierarchy_id,
+		fd_create_time,
+		fd_alter_time,
+		fd_import_info,
+		fd_dingid,
+		fd_parentid
+		) VALUES (
+		#{id} ,
+		#{fdOrgid},
+		#{fdOrder},
+		#{fdOrgType} ,
+		#{fdNo},
+		#{fdName} ,
+		#{fdIsAvailable} ,
+		#{fdIsAbandon},
+		#{fdFlagDeleted},
+		#{fdHierarchyId} ,
+		#{fdCreateTime} ,
+		#{fdAlterTime},
+		#{fdImportInfo},
+		#{fdDingid},				
+		#{fdParentid}
+		) ON DUPLICATE KEY UPDATE 
+			<if test="fdName!=null">
+				fd_name = VALUES(fd_name),
+			</if>
+			<if test="fdIsAvailable!=null">
+				fd_is_available = VALUES(fd_is_available),
+			</if>
+			<if test="fdHierarchyId!=null">
+				fd_hierarchy_id = VALUES(fd_hierarchy_id),
+			</if>
+			<if test="fdParentid!=null">
+				fd_parentid = VALUES(fd_parentid),
+			</if>
+			<if test="fdOrder != null">
+				fd_order = VALUES(fd_order),
+			</if>
+			<if test="fdNo != null">
+				fd_no = VALUES(fd_no),
+			</if>
+			<if test="fdFlagDeleted != null">
+				fd_flag_deleted = VALUES(fd_flag_deleted),
+			</if>
+			fd_alter_time = VALUES(fd_alter_time);
+		<if test="fdOrgType==8">
+			INSERT INTO ding_org_user (
+				fd_id,
+				fd_orgid,
+				fd_is_admin,
+				fd_is_boss,
+				fd_is_leader,
+				fd_avatar,
+				fd_userid,
+				fd_position,
+				fd_email
+			) VALUES (
+				#{id} ,
+				#{fdOrgid},
+				#{fdIsAdmin} ,
+				#{fdIsBoss} ,
+				#{fdIsLeader} ,
+				#{fdAvatar},
+				#{fdUserid},
+				#{fdPosition},
+				#{fdEmail}
+			) ON DUPLICATE KEY UPDATE 
+				fd_is_admin=VALUES(fd_is_admin),
+				fd_is_boss=VALUES(fd_is_boss),  
+				fd_is_leader=VALUES(fd_is_leader),
+				fd_position=VALUES(fd_position) ,
+				fd_avatar=VALUES(fd_avatar) ,
+				fd_email=VALUES(fd_email);
+		</if>
+		<if test="fdOrgType==64">
+			<if test="fdUser != null">
+				INSERT IGNORE INTO ding_org_actor (
+					fd_id,
+					fd_orgid,
+					fd_actoruser_id
+				) VALUES (
+					#{id} ,
+					#{fdOrgid},
+					#{fdUser.id}
+				)
+			</if>
+		</if>
+	</insert>
+	
+	<sql id="updateElementCommonStatement">
+		UPDATE ding_org_element SET
+		fd_name = #{fdName} ,
+		fd_is_available = #{fdIsAvailable} ,
+		fd_no = #{fdNo},
+		fd_is_abandon = #{fdIsAbandon},
+		fd_flag_deleted = #{fdFlagDeleted},
+		fd_hierarchy_id = #{fdHierarchyId} ,
+		fd_parentid = #{fdParentid} ,
+		fd_alter_time = #{fdAlterTime}
+		WHERE fd_orgid = #{fdOrgid} and fd_id = #{id}
+	</sql>
+
+	<update id="update"
+		parameterType="me.ywork.org.realtime.entity.DingOrgElement">
+		<include refid="updateElementCommonStatement" />
+	</update>
+	
+	<update id="updateUser" parameterType="me.ywork.org.realtime.entity.DingOrgUser">
+		UPDATE ding_org_user SET
+		fd_is_admin = #{fdIsAdmin},
+		fd_is_boss = #{fdIsBoss},
+		fd_avatar = #{fdAvatar},
+		fd_position = #{fdPosition},
+		fd_email = #{fdEmail}
+		WHERE fd_orgid = #{fdOrgid} and fd_id = #{id}
+		<include refid="updateElementCommonStatement" />
+	</update>
+	
+	<update id="updateHierarchyId">
+		update ding_org_element set 
+		fd_hierarchy_id= concat( #{1},  substring(fd_hierarchy_id, #{2}, length(fd_hierarchy_id)))
+		where fd_orgid = #{0} and substring(fd_hierarchy_id, 1, #{3})= #{4}
+	</update>
+	
+	<update id="updateActorsHierarchyId">
+		update ding_org_element set 
+		fd_hierarchy_id = concat( #{2},  'x' , fd_id)
+		where fd_orgid = #{0} and fd_parentid = #{1} and fd_org_type = 64 and fd_hierarchy_id is null
+	</update>
+
+</mapper>
+

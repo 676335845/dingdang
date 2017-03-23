@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper
+	namespace="me.ywork.org.repository.DingSuiteThirdMainRepositroy">
+	<resultMap id="DingSuiteThirdMainResultMap"
+		type="me.ywork.org.entity.DingSuiteThirdMain">
+		<id property="id" jdbcType="VARCHAR" column="id" />
+		<result property="suiteId" column="suiteId" />
+		<result property="corpId"  column="corpId" />
+		<result property="permanentCode"  column="permanentCode" />
+		<result property="corpName"  column="corpName" />
+		<result property="industry"  column="industry" />
+		<result property="inviteCode"  column="inviteCode" />
+		<result property="licenseCode" column="licenseCode" />
+		<result property="authChannel" column="authChannel" />
+		<result property="isAuthenticated" column="isAuthenticated" />
+		<result property="authLevel" column="authLevel" />
+		<result property="inviteUrl" column="inviteUrl" />
+		<result property="logoUrl" column="logoUrl" />
+		<result property="enabled" column="enabled" />
+		<result property="createDate"  column="createDate" />
+		<result property="modifiedDate"  column="modifiedDate" />
+	</resultMap>
+	
+	<!--所有字段列表 -->
+	<sql id="fields">
+		id,suiteId,corpId,permanentCode,corpName,industry,inviteCode,licenseCode,authChannel,isAuthenticated,
+		authLevel,inviteUrl,logoUrl,enabled,createDate,modifiedDate
+	</sql>
+
+	<sql id="values">
+		#{id},#{suiteId},#{corpId},#{permanentCode},#{corpName},#{industry},#{inviteCode},#{licenseCode},#{authChannel},#{isAuthenticated}
+		,#{authLevel},#{inviteUrl},#{logoUrl},#{enabled},#{createDate}, #{modifiedDate}
+	</sql>
+	
+	
+	<select id="findDingSuiteThirdByCorpId" parameterType="java.lang.String" resultMap="DingSuiteThirdMainResultMap">
+		SELECT * FROM ding_suite_third_main WHERE corpid = #{corpId} and suiteId = #{suiteId}  limit 1
+	</select>
+	
+	
+	<select id="load" parameterType="java.lang.String" resultMap="DingSuiteThirdMainResultMap">
+		SELECT * FROM ding_suite_third_main WHERE id = #{id}
+	</select>
+		
+	<!-- 查询所有的ID -->
+	<select id="findAllIds" resultType="java.lang.String">
+		SELECT id FROM ding_suite_third_main
+	</select>
+	
+	<delete id="delete" parameterType="java.lang.String">
+		DELETE FROM ding_suite_third_main WHERE id = #{id};
+	</delete>
+	
+	<!-- 插入 -->
+	<insert id="insert" keyProperty="id"
+		parameterType="me.ywork.org.entity.DingSuiteThirdMain">
+		insert into ding_suite_third_main (<include refid="fields"></include>) values(<include refid="values"></include>)	
+	</insert>
+	
+	<update id="updateOrgCallBack"
+		parameterType="me.ywork.org.entity.DingSuiteThirdMain">
+		UPDATE ding_suite_third_main SET
+		isOrgCallBack = #{isOrgCallBack}
+		WHERE id = #{id}
+	</update>
+
+
+	<update id="update"
+		parameterType="me.ywork.org.entity.DingSuiteThirdMain">
+		<include refid="updateDingSuiteThirdCommonStatement" />
+	</update>
+	
+	<sql id="updateDingSuiteThirdCommonStatement">
+		UPDATE ding_suite_third_main SET
+			permanentCode = #{permanentCode},
+			corpName  = #{corpName} ,
+			modifiedDate = #{modifiedDate},
+			enabled = #{enabled}
+		WHERE id = #{id}
+	</sql>
+
+	<select id="findEnabledOpPlatformSuiteThirds" parameterType="java.lang.String" resultMap="DingSuiteThirdMainResultMap">
+		SELECT *  FROM ding_suite_third_main
+		WHERE corpId = #{corpId}
+			AND enabled = 1
+	</select>
+	
+	
+	<select id="findByPage" resultType="me.ywork.org.model.DingSuiteThirdForSync">
+		<![CDATA[
+			select corpId ,
+				   suiteId ,
+				   corpName,
+				   logoUrl,
+				  permanentCode
+		    from ding_suite_third_main where enabled = 1
+			group by corpId,suiteId Limit #{0} ,#{1}
+		]]>		
+		<!-- 
+		 where enabled = 1
+		 -->
+	</select>
+	
+	<select id="countAll" resultType="java.lang.Long">
+		<![CDATA[
+					select count(1) from ( 
+							select corpId,suiteId from ding_suite_third_main where enabled = 1
+							group by corpId,suiteId
+						) t
+		]]>		
+		<!-- 
+		 where enabled = 1
+		 -->
+	</select>
+	
+	<update id="updateEnable">
+		update ding_suite_third_main set enable = 0 where corpId = #{corpId} and suiteId = #{suiteId};
+	</update>
+	
+</mapper>
+

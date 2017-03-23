@@ -1,0 +1,530 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="me.ywork.salary.repository.SalStaffBaseInfoRepository">
+
+     <!-- table staff_info 员工基本信息表-->
+     <sql id="staff_info_field">
+        id,corp_id,corp_bs_ruleid,ding_staffid,staff_pass,atten_social,
+        atten_personal_tax,should_pay_sal,create_date,modified_date,pass_state     
+     </sql>
+     
+     <sql id="staff_info_value">
+       #{id},#{corpId},#{corpBaseRuleId},#{dingStaffId},#{staffPass},
+       #{attenSocial},#{attenPersonalTax},#{shouldPaySal},#{createDate},
+       #{modifiedDate},#{passState}
+     </sql>
+     
+     <!-- table sys_fielditem 企业或员工或系统自定义字段表-->
+     <sql id="field_item_field">
+      id,relative_id,item_name,item_value,item_type,
+      create_date,modified_date,deduct_type,corp_id
+    </sql>
+    
+    <sql id="field_item_value">
+      #{itemId},#{relativeId},#{itemName},#{itemValue},
+      #{itemType},#{createDate},#{modifiedDate},#{deductType},
+      #{corpId},
+    </sql>
+    
+     <!-- 员工薪资情况的大概信息MAP -->
+    <resultMap id="StaffSalInfoMap" type="me.ywork.salary.model.SalStaffBaseInfoModel">
+        <id column="id" property="id"/>
+        <result column="ding_staffid" property="dingStaffId"/>
+        <result column="sal_rule_type" property="salRuleType"/>
+        <result column="corp_bs_ruleid" property="corpBaseRuleId"/>
+        <result column="should_pay_sal" property="shouldPaySal"/>
+        <result column="dept_id" property="deptId"/>
+        <result column="staff_name" property="staffName"/>
+        <result column="dept_name" property="deptName"/>
+        <result column="create_date" property="createDate"/>
+        <result column="modified_date" property="modifiedDate"/>
+        <result column="head_url" property="headUrl"/>
+        <result column="atten_social" property="attenSocial"/>
+        <result column="atten_personal_tax" property="attenPersonalTax"/>
+        <result column="staff_pass" property="staffPass"/>
+        <result column="pass_state" property="passState"/>
+     </resultMap>
+     
+     <!-- 薪资规则、参与社保公积金、参与 个人所得税的信息MAP-->
+     <resultMap type="me.ywork.salary.model.SalStaffBaseInfoModel" id="StaffRulePubMap">
+       <id column="id" property="id"/>
+       <result column="ding_staffid" property="dingStaffId" />
+       <result column="corp_bs_ruleid" property="corpBaseRuleId"/>
+       <result column="atten_social" property="attenSocial"/>
+       <result column="atten_personal_tax" property="attenPersonalTax"/>
+       <result column="parent_id" property="parentId"/>
+       <result column="corp_id" property="corpId"/>
+       <result column="staff_pass" property="staffPass"/>
+       <result column="fd_name" property="staffName"/>
+     </resultMap>
+
+     
+     <!-- 薪资字段的详细信息MAP -->
+     <resultMap type="me.ywork.salary.model.SalSysFieldItemModel" id="ItemMap">
+        <id column="id" property="itemId"/>
+        <result column="relative_id" property="relativeId"/>
+        <result column="item_name" property="itemName"/>
+        <result column="item_value" property="itemValue"/>
+        <result column="item_type" property="itemType"/>
+        <result column="create_date" property="createDate"/>
+        <result column="modified_date" property="modifiedDate"/>
+        <result column="deduct_type" property="deductType"/>
+        <result column="corp_id" property="corpId"/>
+        <result column="parent_id" property="parentId"/>
+     </resultMap>
+
+    <!-- 薪资字段的详细信息MAP -->
+     <resultMap type="me.ywork.salary.entity.SalSysFieldItemEntity" id="ItemEntityMap">
+        <id column="id" property="id"/>
+        <result column="relative_id" property="relativeId"/>
+        <result column="item_name" property="itemName"/>
+        <result column="item_value" property="itemValue"/>
+        <result column="item_type" property="itemType"/>
+        <result column="create_date" property="createDate"/>
+        <result column="modified_date" property="modifiedDate"/>
+        <result column="deduct_type" property="deductType"/>
+        <result column="corp_id" property="corpId"/>
+        <result column="parent_id" property="parentId"/>
+     </resultMap>
+     
+     <!-- 组织架构MAP -->
+     <resultMap type="me.ywork.salary.entity.SalElementInfoEntity" id="elementMap">
+       <id column="fd_id" property="id"/>
+       <result column="fd_orgid" property="fdOrgId"/>
+       <result column="fd_orgtype" property="fdOrgType"/>
+       <result column="fd_name" property="fdName"/>
+       <result column="fd_no" property="userJobNum"/>
+       <result column="fd_parentid" property="fdParentId"/>
+       <result column="fd_dingid" property="fdDingId"/>
+       
+     </resultMap>
+ 
+   	<!-- 得到员工薪资信息（要分页） -->
+	<select id = "getStaffSalInfos" resultMap = "StaffSalInfoMap">
+    	select 
+	  	   e.fd_name as staff_name,
+	       e.fd_dingid as ding_staffId,
+		   info.corp_bs_ruleid,
+	       info.should_pay_sal,
+		   user.fd_avatar as head_url,
+		   sysRule.sal_rule_type salRuleType  
+	    from            
+            ding_org_element  e join ding_org_element pe 
+		              on e.fd_orgid=#{corpId} and
+			          pe.fd_orgid=#{corpId}	and
+				      e.fd_dingid=pe.fd_dingid,
+			ding_org_element se,
+	        dingsal_staff_info info left join ding_org_user user   
+	                  on user.fd_userid = info.ding_staffid
+	                                left join dingsal_corp_baserule baseRule 
+					  on baseRule.id=info.corp_bs_ruleid and
+					  baseRule.corp_id=#{corpId}
+					                left join dingsal_sys_salrule sysRule 
+					  on  baseRule.sal_rule_id = sysRule.id	          
+	    where 
+              info.ding_staffid =e.fd_dingid and             
+              info.corp_id=#{corpId} and
+		      e.fd_orgid=#{corpId} and			     
+		      e.fd_org_type = 8 and
+		      pe.fd_parentid=se.fd_id and
+		      se.fd_orgid=#{corpId}	      
+		      group by e.fd_dingid 	      
+		      order by se.fd_name
+		      limit #{beginNum},#{endNum}
+	</select>
+	
+	<!-- 得到应用内拥有业务信息的所有员工信息 -->
+	<select id="getStaffInfos" resultMap = "StaffSalInfoMap">
+	   select
+	      e.fd_name as staff_name,
+          e.fd_dingid as ding_staffId,
+	      info.corp_bs_ruleid,
+          info.should_pay_sal,
+		  user.fd_avatar as head_url,
+		  sysRule.sal_rule_type salRuleType,
+		  se.fd_dingid as dept_id
+	   from            
+         ding_org_element e,
+         dingsal_staff_info info  left join ding_org_user user   
+                 on user.fd_userid = info.ding_staffid
+                                 left join dingsal_corp_baserule baseRule 
+			     on baseRule.id=info.corp_bs_ruleid and 
+			        baseRule.corp_id=#{corpId}
+			                     left join dingsal_sys_salrule sysRule 
+			     on  baseRule.sal_rule_id = sysRule.id  
+			                     left join ding_org_element pe 
+			     on info.ding_staffid=pe.fd_dingid and pe.fd_org_type=64,
+		 ding_org_element se    
+	   where 
+           info.ding_staffid =e.fd_dingid and             
+           info.corp_id=#{corpId} and
+	       e.fd_orgid=#{corpId} and
+	       se.fd_orgid=#{corpId} and
+	       pe.fd_orgid=#{corpId} and			     
+	       e.fd_org_type = 8 and
+	       pe.fd_parentid=se.fd_id
+           group by e.fd_dingid 
+	</select>
+	
+	<!-- 得到应用内员工薪资信息的总数 -->
+	<select id="getStaffSalInfosCount" resultType="java.lang.Integer">
+		select 
+	      count(e.fd_dingid)		  
+	     from            
+	          ding_org_element e ,
+	          dingsal_staff_info info
+	      where 
+              info.ding_staffid =e.fd_dingid and             
+              info.corp_id=#{corpId} and
+		      e.fd_orgid=#{corpId} and			     
+		      e.fd_org_type = 8				
+	</select>
+	   
+	
+	<!-- 更新企业人员对应的基本薪资规则  -->
+	<update id="updateSalRuleStaffies">
+	    update dingsal_staff_info 
+         <set>
+               <if test="cbRuleId !=null and sal.type==2">
+                 corp_bs_ruleid = #{cbRuleId}
+               </if> 
+               <if test="cbRuleId !=null and sal.type==8">
+                 corp_bs_ruleid = #{cbRuleId}
+               </if>
+               <if test="updateType == 1 and sal.type==2">
+                  atten_social = 1
+               </if>
+                 <if test="updateType == 1 and sal.type==8">
+                  atten_social = 1
+               </if>                     
+               <if test="updateType == 2 and sal.type==2">
+                  atten_personal_tax =1
+               </if>
+                <if test="updateType == 2 and sal.type==8">
+                  atten_personal_tax =1
+               </if>
+         </set>
+         <where>
+           corp_id = #{corpId}	           
+           <if  test="sal.type == 8">and 
+           ding_staffid =#{sal.id}
+           </if>
+           <if test="sal.type == 2">and 
+		        ding_staffid in
+		        (
+			     select 
+			         s.fd_dingid 
+			         from ding_org_element s INNER JOIN ding_org_element p
+			              on s.fd_parentid = p.fd_id
+		              where p.fd_dingid = #{sal.id} and
+		                    s.fd_orgid = #{corpId} and
+		                    p.fd_orgid = #{corpId}
+			     )
+	           </if>
+          </where>
+	</update>
+	
+	<!-- 删除企业所有员工的薪资规则 （基本，社保公积金，个人所得税的规则） -->
+	<update id="deleteCorpSalRule">
+       update
+         dingsal_staff_info 
+         <set>
+            <if test="cbRuleId !=null">
+              corp_bs_ruleid = null,
+            </if> 
+            <if test="updateType == 1">
+               atten_social = 0,
+            </if>                
+            <if test="updateType == 2">
+               atten_personal_tax =0
+            </if>
+         </set>
+         <where>
+             corp_id = #{corpId} 
+              <if test="cbRuleId !=null">
+             and corp_bs_ruleid = #{cbRuleId}
+            </if> 
+            <if test="updateType == 1">
+             and atten_social = 1
+            </if>                
+            <if test="updateType == 2">
+             and atten_personal_tax =1
+            </if>             
+		</where>
+	</update>
+	
+	<!-- 删除企业某个员工或部门的薪资规则（基本，社保公积金，个人所得税的规则） -->
+	<update id="deleteStaffSalRule">
+	    update 
+	       dingsal_staff_info
+        <set>
+           <if test="sal.salRuleHandleType == 0">
+               corp_bs_ruleid = null
+            </if> 
+            <if test="sal.salRuleHandleType == 1">
+               atten_social = 0
+            </if>                
+            <if test="sal.salRuleHandleType == 2">
+                atten_personal_tax = 0
+            </if>  
+        </set>  
+	     where
+	         <if test="type==2">
+	           ding_staffid in
+	            (
+		          select 
+		             s.fd_dingid
+				  from
+			         ding_org_element p ,
+			         ding_org_element s
+				   where     
+			        s.fd_orgid = p.fd_orgid
+					and p.fd_orgid =#{sal.corpId}
+					and s.fd_org_type = 64
+					and p.fd_org_type = 2 
+					and p.fd_dingid = #{sal.id}
+					and s.fd_hierarchy_id like CONCAT (p.fd_hierarchy_id ,'%')
+				) and
+	              </if>   
+	          <if test="type==8">
+	              ding_staffid = #{sal.id} and
+	          </if> 
+			 corp_id = #{sal.corpId}
+	</update>
+	
+	
+	<!-- 新增员工自定义薪资字段 -->
+	<insert id="addNewSalInfoField" parameterType="me.ywork.salary.model.SalSysFieldItemModel">
+	   insert into 
+	       dingsal_sys_fielditem 
+	       (
+	        id,item_name,item_value,create_date,modified_date,relative_id
+	       )
+	       values(
+	        #{itemId},#{itemName},#{itemValue},#{createDate},#{modifiedDate},#{relativeId}
+	       )	   
+	</insert>
+	
+	<!-- 新增 企业考勤请假的字段-->
+	<insert id="addNewAttendanceVacationField" parameterType="me.ywork.salary.model.SalSysFieldItemModel">
+	   insert into dingsal_sys_fielditem 
+	    (
+	      id,item_name,create_date,modified_date,corp_id,deduct_type,item_value
+	     )
+	   values
+	    (
+	   #{itemId},#{itemName},#{createDate},#{modifiedDate},#{corpId},#{deductType},#{itemValue}
+	    )	   
+	</insert>
+	
+	<!-- 修改自定义的字段 -->
+	<update id="updateField" parameterType="me.ywork.salary.model.SalSysFieldItemModel">
+	  update dingsal_sys_fielditem
+	     <set>
+           <if test="itemName != null">
+	       item_name = #{itemName},
+	       </if>
+	       <if test="itemValue != null">
+	       item_value = #{itemValue},
+	       </if>
+	       <if test="itemType != null">
+	       item_type = #{itemType},
+	       </if>
+	       <if test="modifiedDate != null">
+	       modified_date = #{modifiedDate},
+	       </if>
+	       <if test="deductType !=null">
+	       deduct_type=#{deductType}
+	       </if>
+	       </set>
+	       where
+	        id = #{itemId}
+	</update>
+	
+	<!-- 找到该员工所有的的薪资字段 -->
+	<select id="getStaffFieldItems" resultMap="ItemMap">
+	   select *
+	       from 
+             dingsal_sys_fielditem fieldItem,
+             dingsal_staff_info staffInfo
+	       where 
+	           staffInfo.id = fieldItem.relative_id and
+	           staffInfo.corp_id = #{corpId} and
+	           staffInfo.ding_staffid = #{dingStaffId}
+	</select>
+	
+	<!-- 得到通讯录企业的所有子部门 -->
+	<select id="getDeptInfoByParentId" resultType="java.lang.String">
+	  select 
+	      s.fd_dingid as deptId 
+		from ding_org_element p ,
+		       ding_org_element s
+		where     
+	        s.fd_orgid = p.fd_orgid
+			and p.fd_orgid = #{corpId}
+			and s.fd_org_type = 2 
+			and p.fd_org_type = 2 
+			and p.fd_dingid = #{deptId}
+			and s.fd_hierarchy_id like CONCAT (p.fd_hierarchy_id ,'%')
+	</select>
+	
+	<!-- 得到企业请假类型的字段的集合 -->
+	<select id="getCorpVacations" resultMap="ItemMap">
+	   select 
+	      *from 
+	        dingsal_sys_fielditem 
+	  where
+	      corp_id=#{corpId}
+	</select>
+	
+	<!-- 删除企业员工的自定义的字段 -->
+    <delete id="deleteStaffSalField">
+       delete
+         from 
+           dingsal_sys_fielditem 
+          where 
+           relative_id=#{staffId}        
+    </delete>
+    
+    <!-- 得到员工基本信息的集合 -->
+    <select id="getStaffBaseInfo" resultMap="StaffSalInfoMap">
+       select *from 
+           dingsal_staff_info
+       where
+          corp_id=#{corpId} and
+          ding_staffid=#{staffId}
+    </select>  
+    
+    
+    <!-- 找到员工对应的所有的部门 -->
+    <select id="getStaffAllDeptName" resultType="java.lang.String">
+	    select 
+	       pe.fd_name 
+	    from  
+	       ding_org_element e  JOIN ding_org_element pe 
+             on e.fd_parentid = pe.fd_id
+       where 
+          e.fd_orgid=#{corpId} and
+          pe.fd_orgid =#{corpId} and
+          e.fd_dingid=#{staffId} and
+          pe.fd_dingid !='1'
+    </select>
+    
+     <!-- 得到组织机构中该人员的信息 -->
+    <select id="getOrgStaffInfo" resultMap="StaffSalInfoMap">
+       select
+          e.fd_dingid as ding_staffid,
+          e.fd_name as staff_name
+       from 
+         ding_org_element e
+       where
+            e.fd_orgid = #{corpId} and
+           e.fd_dingid = #{staffId} and
+           e.fd_org_type = 8
+    </select>  
+
+    
+    <!-- 得到企业组织架构中员工的总数 -->
+    <select id="getCorpStaffOrgCount" resultType="java.lang.Integer"> 
+        select 
+        count(1) from ding_org_element e where e.fd_orgid=#{corpId} and e.fd_org_type=8
+    </select>
+    
+    <!-- 得到在指定部门及子部门下的所有人员的信息 -->
+    <select id="getOrgStaffInfosUnderDept" resultMap="elementMap">
+         select s.fd_dingid,
+                s.fd_name,
+                s.fd_no
+		  from  ding_org_element p ,
+		        ding_org_element s
+			    where     
+		        s.fd_orgid = p.fd_orgid
+				and p.fd_orgid =#{corpId}
+				and s.fd_org_type = 64
+				and p.fd_org_type = 2 
+				and p.fd_dingid = #{deptId}
+				and s.fd_hierarchy_id like CONCAT (p.fd_hierarchy_id ,'%')			
+				group by s.fd_dingid
+    </select>
+    
+    <select id="getChoiceDeptUserInfo" resultType="me.ywork.salary.model.SalChoiceDeptUserInfoModel">
+      	        select 
+	            e.fd_name as name,
+	            e.fd_dingid as dingId,
+	            count(se.fd_id) as userCount,
+	            e.fd_org_type as orgType	
+			      from
+						 ding_org_element e,
+						 ding_org_element pe,
+						 ding_org_element se 
+	            where 
+					 e.fd_orgid=#{corpId} and
+					 e.fd_parentid=pe.fd_id and
+					 se.fd_orgid=#{corpId} and
+					 se.fd_hierarchy_id like CONCAT('%',e.fd_id,'%') and
+					 pe.fd_dingid=#{deptId}  and
+					 pe.fd_orgid=#{corpId} and
+					 se.fd_org_type=64
+					 group by e.fd_name
+    </select>
+    
+    <!-- 得到部门下匹配某项薪资规则的人数 -->
+    <select id="getStaffCountUnderDeptAndRule" resultType="java.lang.Integer">
+	  select 
+	    count(1) 
+	    from 
+	       dingsal_staff_info info
+	    where 
+	       info.corp_id=#{corpId} and
+	       info.ding_staffid in(
+	         select 
+		         se.fd_dingid 
+		       from
+				 ding_org_element e,
+				 ding_org_element se
+		         where 
+					 e.fd_orgid=#{corpId} and
+					 e.fd_dingid=#{deptId} and
+					 se.fd_orgid=#{corpId} and
+					 se.fd_hierarchy_id like CONCAT('%',e.fd_id,'%') and
+					 se.fd_org_type=64
+			 ) 
+		      <if test="type==0">
+               and  info.corp_bs_ruleid =#{cbRuleId}
+             </if>
+             <if test="type==1">
+               and  info.atten_social = 1
+             </if>
+             <if test="type==2">
+               and info.atten_personal_tax =1
+             </if>			 
+    </select>
+    
+      <!-- 得到部门下匹配某项薪资规则的人数 -->
+    <select id="getStaffCountUnderRule" resultType="java.lang.Integer">
+	  select 
+	    count(1) 
+	    from 
+	       dingsal_staff_info info
+	    where 
+	       info.corp_id=#{corpId} and
+	       info.ding_staffid =#{staffId}
+	       <if test="type==0">
+               and  info.corp_bs_ruleid =#{cbRuleId}
+           </if>
+           <if test="type==1">
+               and  info.atten_social = 1
+           </if>
+           <if test="type==2">
+               and info.atten_personal_tax =1
+           </if>			 
+     </select>
+     
+     <!-- 得到公司的名称 -->
+     <select id="getCorpBsInfo" resultType="me.ywork.salary.model.SalCorpInfoModel">
+        select 
+           fd_corp_name as corpName
+           from ding_org_corp
+           where fd_appkey=#{corpId}
+     </select>
+</mapper>

@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="me.ywork.salary.repository.SalReportRepository">
+
+    <!-- staff_month_sal 员工月度薪资表 -->
+    <sql id="staff_monthsal_field">
+      id,ding_staffid,sal_report_id,should_pay_sal,sal_deduct,
+      replace_deduct,actual_sal, annual_bonus,month_bonus,
+      other_pretax_sal,other_aftertax_sal,other_pretax_deduct,
+      other_aftertax_deduct,modified_date,create_date,month_time,corp_insurance_sal,
+       staff_insurance_sal,tax_sal,atten_deduct,corp_id
+    </sql> 
+    <sql id="staff_month_sal_value">
+      #{id},#{dingStaffId},#{salReportId},#{shouldPaySal},#{salDeduct},
+      #{replaceDeduct},#{actualSal},#{annualBonus},#{monthBonus},
+      #{otherPretaxSal},#{otherAftertaxSal},#{otherPretaxDeduct},
+      #{otherAftertaxDeduct},#{modifiedDate},#{createDate},#{monthTime},
+      #{corpInsuranceSal},#{staffInsuranceSal},#{taxSal},#{attenDeduct},#{corpId}
+    </sql>
+    
+    <!-- corp_salreport  企业月度薪资报表 -->
+    <sql id="sal_report_field">
+       id,corp_id,sal_report_state,should_pay_sal,
+       insurance_sal,actual_pay_sal,staff_cost,
+       create_date,modified_date,month_time
+    </sql>
+    <sql id="sal_report_value">
+       #{id}, #{corpId}, #{salReportState}, #{shouldPaySal},
+       #{insuranceSal},#{actualPaySal},#{staffCost}, #{createDate},
+       #{modifiedDate}, #{monthTime}
+    </sql>
+    
+    <!-- 企业月度薪资MAP -->
+    <resultMap  id="SalReportMap" type="me.ywork.salary.model.SalCorpReportModel">
+      <id column="id" property="id"/>
+      <result column="sal_report_state" property="salReportState"/>
+      <result column="should_pay_sal" property="shouldPaySal"/>
+      <result column="actual_pay_sal" property="actualPaySal"/>
+      <result column="insurance_sal" property="insuranceSal"/>
+      <result column="staff_cost" property="staffCost"/>
+      <result column="month_time" property="monthTime"/>
+      <result column="create_date" property="createDate"/>
+      <result column="modified_date" property="modifiedDate"/>
+      <result column="corp_id" property="corpId"/>
+    </resultMap>
+    
+    <!-- 员工月度薪资数据MAP（实体） -->
+    <resultMap id="staffSalReportEntityMap" type="me.ywork.salary.entity.SalStaffSalReportEntity" >
+	     <id column="id" property="id"/>
+	     <result column="should_pay_sal" property="shouldPaySal"/>
+	     <result column="sal_deduct" property="salDeduct"/>
+	     <result column="replace_deduct" property="replaceDeduct"/>
+	     <result column="actual_sal" property="actualSal"/>
+	     <result column="annual_bonus" property="annualBonus"/>
+	     <result column="month_bonus" property="monthBonus"/>
+	     <result column="other_pretax_sal" property="otherPretaxSal"/>
+	     <result column="other_aftertax_sal" property="otherAftertaxSal"/>
+	     <result column="other_pretax_deduct" property="otherPretaxDeduct"/>
+	     <result column="other_aftertax_deduct" property="otherAftertaxDeduct"/>
+	     <result column="ding_staffid" property="dingStaffId"/>
+	     <result column="corp_insurance_sal" property="corpInsuranceSal"/>
+	     <result column="staff_insurance_sal" property="staffInsuranceSal"/>
+	     <result column="tax_sal" property="taxSal"/>
+	     <result column="atten_deduct" property="attenDeduct"/>
+	     <result column="sal_report_id" property="salReportId"/>
+	     <result column="corp_id" property="corpId"/>
+	     <result column="create_date" property="createDate"/>
+	     <result column="modified_date" property="modifiedDate"/>
+	     <result column="month_time" property="monthTime"/>
+    </resultMap>
+    
+    <!-- 员工浮动薪资MAP -->
+    <resultMap id="staffSalFloatMap" type="me.ywork.salary.model.SalStaffSalReportDetailModel">
+         <id column="id" property="id"/>
+         <result column="ding_staffid" property="dingStaffId"/>
+	     <result column="sal_report_id" property="salReportId"/>
+	     <result column="staff_name" property="staffName"/>
+	     <result column="dept_name" property="deptName"/>	     
+	     <result column="annual_bonus" property="annualBonus"/>
+	     <result column="month_bonus" property="monthBonus"/>
+	     <result column="other_pretax_sal" property="otherPretaxSal"/>
+	     <result column="other_aftertax_sal" property="otherAftertaxSal"/>
+	     <result column="other_pretax_deduct" property="otherPretaxDeduct"/>
+	     <result column="other_aftertax_deduct" property="otherAftertaxDeduct"/>	
+    </resultMap>
+    
+    <!-- 员工月度薪资详情MAP -->
+    <resultMap id="staffSalDetailMap" type="me.ywork.salary.model.SalStaffSalReportModel">
+        <id column="id" property="id"/>
+        <result column="sal_report_id" property="salReportId"/>
+        <result column="ding_staffid" property="dingStaffId"/>   
+        <result column="should_pay_sal" property="shouldPaySal"/>
+	    <result column="sal_deduct" property="salDeduct"/>
+	    <result column="replace_deduct" property="replaceDeduct"/>
+	    <result column="actual_sal" property="actualSal"/>
+	    <result column="corp_insurance_sal" property="corpInsuranceSal"/>   
+	    <result column="staff_insurance_sal" property="staffInsuranceSal"/>
+	    <result column="tax_sal" property="taxSal"/>
+	    <result column="atten_deduct" property="attenDeduct"/>
+	    <result column="annual_bonus" property="annualBonus"/>
+	    <result column="month_bonus" property="monthBonus"/>
+	    <result column="corp_id" property="corpId"/>
+	    <result column="other_pretax_sal" property="otherPretaxSal"/>
+	    <result column="other_aftertax_sal" property="otherAftertaxSal"/>
+	    <result column="other_pretax_deduct" property="otherPretaxDeduct"/>
+	    <result column="other_aftertax_deduct" property="otherAftertaxDeduct"/>
+
+	    <result column="month_time" property="monthTime"/>
+	    <result column="staff_name" property="staffName"/>
+	    <result column="dept_name" property="deptName"/>
+	    <result column="fd_no" property="jobNum"/>
+	    <result column="head_url" property="headUrl"/>
+	    <result column="create_date" property="createDate"/>
+	    <result column="modified_date" property="modifiedDate"/>
+    </resultMap>
+    
+    <!-- 员工手机端薪资详情MAP -->
+    <resultMap id="SalStaffMbSalInfoMap" type="me.ywork.salary.model.SalStaffMbSalInfoModel">
+       <result column="ding_staffid" property="staffId"/>
+	    <result column="staff_name" property="name"/>
+		<result column="avatar" property="avatar"/>
+		<result column="dept_name" property="deptName"/>
+		<result column="should_pay_sal" property="yfgz"/>
+		<result column="actual_sal" property="sfgz"/>
+		<result column="sal_deduct" property="dj"/>
+		<result column="replace_deduct" property="kk"/>
+    </resultMap>
+    
+    <!--获取所有月份工资表-->
+    <select id="getAllSalReports" resultMap="SalReportMap">
+       select 
+          <include refid="sal_report_field"></include>
+          from
+            dingsal_corp_salreport
+          where 
+	          corp_id= #{corpId}
+	          order by month_time desc
+     </select>
+     
+    <!--根据报表状态获取所有月份工资表概要-->
+    <select id="getAllSalReportsByState" resultMap="SalReportMap">
+       select 
+         <include refid="sal_report_field"></include>
+         from 
+           dingsal_corp_salreport
+         where 
+             corp_id= #{corpId}
+             <if test="state!=null">
+               and sal_report_state =#{state}
+             </if>
+     </select>
+     
+     <!-- 根据薪资报表ID得到薪资报表详情 -->
+    <select id="getSalReportByReportId" resultMap="SalReportMap">
+        select 
+           <include refid="sal_report_field"></include>
+           from 
+             dingsal_corp_salreport
+           where 
+              id = #{reportId}
+    </select>
+    
+     <!-- 获取企业工资表的总数 -->
+     <select id="getAllMonthSalCount" resultType="java.lang.Integer">
+       select 
+           count(id)
+           from 
+              dingsal_corp_salreport
+           where 
+              corp_id= #{corpId}
+     </select>
+    
+    <!-- 根据工资表ID来获得该月的工资详情 -->
+    <select id = "getSalDatailByReportId" resultMap="staffSalDetailMap">
+          select 
+	           salInfo.id,
+	           salInfo.should_pay_sal,
+	           salInfo.sal_deduct,
+	           salInfo.replace_deduct,
+	           salInfo.actual_sal,
+	           salInfo.ding_staffid,
+	           user1.fd_avatar as head_url,
+	           e.fd_name as staff_name,
+	           se.fd_name as dept_name
+	       from
+	            dingsal_staff_monthsal salInfo LEFT JOIN  ding_org_user user1
+				        on user1.fd_userid = salInfo.ding_staffid and
+						user1.fd_orgid=#{corpId},
+				ding_org_element e join ding_org_element pe 
+			            on e.fd_orgid=#{corpId} and
+					    pe.fd_orgid=#{corpId} and
+						 e.fd_dingid=pe.fd_dingid,
+				 ding_org_element se 	 	              
+	       where   
+			      salInfo.sal_report_id = #{reportId} and
+			      e.fd_orgid=#{corpId} and
+			      e.fd_org_type=8 and
+			      salInfo.ding_staffid=e.fd_dingid  and
+			      pe.fd_parentid=se.fd_id and
+			      se.fd_orgid=#{corpId}	
+			            
+			      group by e.fd_dingid 	      
+			      order by dept_name
+			      <if test="beginNum!=null">
+	                limit #{beginNum},#{pageSize}
+	              </if>
+    </select>
+    
+    <!-- 得到该工资表下员工的薪资信息 （非分页） -->
+     <select id = "getSalDatailByReportIdNotPage" resultMap="staffSalDetailMap">
+       select 
+           salInfo.id,
+           salInfo.should_pay_sal,
+           salInfo.sal_deduct,
+           salInfo.replace_deduct,
+           salInfo.actual_sal,
+           salInfo.ding_staffid,
+           salInfo.annual_bonus,
+           salInfo.month_bonus,
+           salInfo.other_pretax_sal,
+           salInfo.other_aftertax_sal,
+           salInfo.other_pretax_deduct,
+           salInfo.other_aftertax_deduct,
+           salInfo.create_date,
+           salInfo.modified_date,
+           salInfo.month_time,
+           salInfo.corp_insurance_sal,
+           salInfo.staff_insurance_sal,
+           salInfo.tax_sal,
+           salInfo.atten_deduct,
+           user1.fd_avatar as head_url,
+           e.fd_name as staff_name,
+           e.fd_no
+	   from 
+	      dingsal_staff_monthsal salInfo LEFT JOIN  ding_org_user user1
+				      on user1.fd_userid = salInfo.ding_staffid and
+					     user1.fd_orgid=#{corpId},
+		  ding_org_element e   	              
+	   where   
+	      salInfo.sal_report_id = #{reportId} and
+	      e.fd_orgid=#{corpId} and
+	      e.fd_org_type=8 and
+	      salInfo.ding_staffid=e.fd_dingid 				        
+    </select>
+    
+    <!-- 获取该月度参与计算薪资的人数 -->
+    <select id="getSalDatailCountByReportId" resultType="java.lang.Integer">
+         select 
+	         count(1)
+	     from 
+	         dingsal_staff_monthsal salInfo	              
+         where   
+	         salInfo.sal_report_id = #{reportId}    
+    </select>
+   
+    <!-- 根据工资表ID来锁定该工资表 -->
+    <update id="lockSalReportById">
+        update 
+           dingsal_corp_salreport
+           set 
+             sal_report_state = #{reportState}
+             where id=#{reportId}
+    </update>
+    
+    <!-- 获取选中人员该月工资详情(修改浮动款项):传递工资表ID和多个员工ID去返回多个员工的工资数据 -->
+    <select id="getSelectedStaffSalDetail" resultMap="staffSalFloatMap">
+      select
+	      salInfo.id,
+	      salInfo.annual_bonus,
+		  salInfo.month_bonus,
+		  salInfo.other_pretax_sal,
+          salInfo.other_aftertax_sal,
+          salInfo.other_pretax_deduct,
+          salInfo.other_aftertax_deduct,
+          salInfo.ding_staffid, 
+          e.fd_name as staff_name
+      from 
+         dingsal_staff_monthsal salInfo,
+         ding_org_element e           
+      where 
+         e.fd_dingid = salInfo.ding_staffid and
+         e.fd_org_type=8 and
+         e.fd_orgid = #{corpId} and
+         salInfo.sal_report_id=#{reportId} and
+         salInfo.ding_staffid=#{dingStaffId}        
+    </select>
+        
+    <!-- 获取部门下及子部门下所有人员当月工资表的浮动款项的信息 -->
+    <select id="getDeptAllStaffFloatSal" resultMap="staffSalFloatMap">
+       select
+	      salInfo.id,
+	      salInfo.annual_bonus,
+		  salInfo.month_bonus,
+		  salInfo.other_pretax_sal,
+          salInfo.other_aftertax_sal,
+          salInfo.other_pretax_deduct,
+          salInfo.other_aftertax_deduct,
+          salInfo.ding_staffid, 
+          e.fd_name as staff_name
+       from 
+          dingsal_staff_monthsal salInfo,
+          ding_org_element e           
+      where 
+           e.fd_dingid = salInfo.ding_staffid and
+           e.fd_org_type=8 and
+           e.fd_orgid = #{corpId} and
+		  salInfo.sal_report_id=#{reportId} and
+		  salInfo.ding_staffid in
+			  (
+			    select 
+			        e.fd_dingid from 
+				   ding_org_element e inner join ding_org_element pe on
+				            e.fd_parentid = pe.fd_id
+			    where
+	                e.fd_org_type=64 and
+					e.fd_orgid=pe.fd_orgid and 
+					pe.fd_orgid =#{corpId} and
+                    pe.fd_dingid  in 
+	               <foreach collection="deptIds" item="deptId" index="i" open="("
+										 separator="," close=")">
+									#{deptId}
+		           </foreach>    
+		        )            
+    </select>
+    
+
+    <!-- 具体员工的工资情况可以修改,向后台传递的是修改后的工资数据 -->
+    <update id="updateStaffSalOnMonth" parameterType="me.ywork.salary.model.SalStaffSalReportDetailModel">
+      update 
+        dingsal_staff_monthsal 
+      set 
+         annual_bonus = #{annualBonus},
+         month_bonus = #{monthBonus},
+         other_pretax_sal = #{otherPretaxSal},
+         other_aftertax_sal = #{otherAftertaxSal},
+         other_pretax_deduct = #{otherPretaxDeduct},
+         other_aftertax_deduct = #{otherAftertaxDeduct}
+         where
+          id=#{id}          
+    </update>
+    
+    <select id="getSalDetailEntityById" resultMap="staffSalReportEntityMap">
+       select *
+         from 
+           dingsal_staff_monthsal sMonthSal
+         where id = #{id}
+    </select>
+    
+    <!-- 得到员工月度薪资的日期列表 -->
+    <select id="getUserSalDates" resultMap="SalReportMap">
+       select 
+         salReport.id,
+         salReport.month_time 
+      from 
+         dingsal_corp_salreport salReport,
+         dingsal_staff_monthsal staffSal
+      where 
+         staffSal.sal_report_id = salReport.id and
+         salReport.corp_id=#{corpId} and
+         staffSal.ding_staffid = #{staffId}
+         order by salReport.month_time desc
+    </select>
+    
+    <select id="getStaffMbSalInfo" resultMap="SalStaffMbSalInfoMap">     
+      select 
+            ding_staffid,
+		    e.fd_name as staff_name,
+			user1.fd_avatar,
+			should_pay_sal,
+			actual_sal,
+			sal_deduct,
+			replace_deduct
+	  from 
+	      dingsal_staff_monthsal salInfo,
+	      ding_org_element e left join ding_org_user user1
+	                  on e.fd_dingid=user1.fd_userid and
+	                  e.fd_orgid=user1.fd_orgid
+	  where 
+        salInfo.ding_staffid = e.fd_dingid and
+        e.fd_org_type = 8 and
+        salInfo.corp_id =e.fd_orgid  and
+        salInfo.corp_id=#{corpId} and
+        salInfo.ding_staffid=#{staffId} and
+        <choose>
+          <when test="reportId !=null">
+             salInfo.sal_report_id = #{reportId}
+          </when>
+          <otherwise>
+            salInfo.month_time = 
+            (
+	            select max(month_time) 
+	            from dingsal_staff_monthsal order by month_time ASC
+            )
+          </otherwise>
+        </choose>       
+    </select>
+    
+    <!-- 得到选择员工的浮动工资  -->
+    <select id="getSelectStaffFloatSalData" resultMap="staffSalFloatMap">
+         select
+	       salInfo.id,
+	       e.fd_name as staff_name,
+	       salInfo.annual_bonus,
+		   salInfo.month_bonus,
+		   salInfo.other_pretax_sal,
+           salInfo.other_aftertax_sal,
+           salInfo.other_pretax_deduct,
+           salInfo.other_aftertax_deduct
+        from 
+           dingsal_staff_monthsal salInfo,
+           ding_org_element e
+        where 
+           salInfo.ding_staffid = e.fd_dingid and
+           e.fd_org_type = 8 and   
+           e.fd_orgid=#{corpId} and
+           salInfo.sal_report_id = #{reportId} and
+           salInfo.ding_staffid in           
+           <foreach collection="staffIds" item="dingStaffId" index="i" open="("
+						 separator="," close=")">
+					#{dingStaffId}
+          </foreach>            
+    </select>
+    
+    <!-- 得到指定人员的浮动工资  -->
+     <select id="getFloatSalDataByStaffId" resultMap="staffSalFloatMap">
+       select
+	       salInfo.id,
+	       e.fd_name as staff_name,
+	       salInfo.annual_bonus,
+		   salInfo.month_bonus,
+		   salInfo.other_pretax_sal,
+           salInfo.other_aftertax_sal,
+           salInfo.other_pretax_deduct,
+           salInfo.other_aftertax_deduct
+        from 
+           dingsal_staff_monthsal salInfo,
+           ding_org_element e
+           where 
+              salInfo.ding_staffid = e.fd_dingid and
+              e.fd_org_type = 8 and   
+              e.fd_orgid=#{corpId} and
+              salInfo.sal_report_id = #{reportId} and
+              salInfo.ding_staffid=#{staffId}    
+    </select>
+    
+    <!-- 更新工资报表 -->
+    <update id="updateSalReport" parameterType="me.ywork.salary.entity.SalReportEntity">
+       update 
+          dingsal_corp_salreport 
+       set
+          should_pay_sal = #{shouldPaySal},
+          insurance_sal =#{insuranceSal},
+          actual_pay_sal = #{actualPaySal},
+          staff_cost = #{staffCost},
+          modified_date = #{modifiedDate}
+          where id=#{id}
+    </update>
+    
+    <!-- 得到某个员工的月 度工资详情-->     
+    <select id="getStaffMonthSalEntity" resultMap="staffSalReportEntityMap">
+       select
+         *from
+             dingsal_staff_monthsal
+       where  
+         ding_staffid=#{staffId} and
+         sal_report_id=#{reportId}
+    </select>
+    
+    
+    <!-- 更新某个员工的月度工资 -->
+    <update id="updateStaffMonthSalEntity" parameterType="me.ywork.salary.entity.SalStaffSalReportEntity">
+      update
+         dingsal_staff_monthsal
+      set 
+         should_pay_sal = #{shouldPaySal},
+         sal_deduct = #{salDeduct},
+         replace_deduct = #{replaceDeduct},
+         actual_sal = #{actualSal},
+         corp_insurance_sal = #{corpInsuranceSal},
+         modified_date = #{modifiedDate},
+         staff_insurance_sal = #{staffInsuranceSal},
+         tax_sal = #{taxSal},
+         atten_deduct = #{attenDeduct}
+       where 
+         id=#{id}
+    </update>
+</mapper>

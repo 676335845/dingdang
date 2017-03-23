@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>me.ywork</groupId>
+    <artifactId>ywork-app-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    
+    <properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.target>1.7</maven.compiler.target>
+	</properties>
+    
+    <modules>
+    <!-- 
+        <module>ywork-app-salarybill</module>
+    	<module>ywork-suite-api</module>
+    	<module>ywork-suite</module> -->
+    	<module>ywork-organization-server</module>
+    	<module>ywork-organization-api</module>
+    	<module>ywork-org-realtime</module>
+    	<module>ywork-ticket</module>
+    	<module>ywork-ticket-api</module>
+    <module>ywork-org-realtime</module>
+    <module>ywork-oss-service</module>
+  </modules>
+    
+    <dependencies>
+		<dependency>
+			<groupId>com.heyi</groupId>
+			<artifactId>common-ywork-app</artifactId>
+			<version>0.1.2-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.heyi</groupId>
+			<artifactId>common-epc</artifactId>
+			<version>0.1.2-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.heyi</groupId>
+			<artifactId>common-oss</artifactId>
+			<version>0.1.2-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.heyi</groupId>
+			<artifactId>common-rpc</artifactId>
+			<version>0.1.2-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.heyi</groupId>
+			<artifactId>common-utils</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.redisson</groupId>
+			<artifactId>redisson-cache</artifactId>
+			<version>1.0.7</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>asm</artifactId>
+					<groupId>org.ow2.asm</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+			
+         <dependency>  
+             <groupId>org.mybatis</groupId>  
+             <artifactId>mybatis-spring</artifactId>  
+             <version>1.2.3</version>  
+         </dependency>
+         
+			
+		</dependencies>
+		
+		
+		 <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <showWarnings>true</showWarnings>
+                </configuration>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
+                </includes>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
+    </build>
+    
+	<profiles>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.8.2</version>
+				<scope>test</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	<distributionManagement>
+		<repository>
+			<id>heyi-Releases</id>
+			<url>http://120.25.221.171:8081/nexus/content/repositories/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>heyi-Snapshots</id>
+			<url>http://120.25.221.171:8081/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+</project>

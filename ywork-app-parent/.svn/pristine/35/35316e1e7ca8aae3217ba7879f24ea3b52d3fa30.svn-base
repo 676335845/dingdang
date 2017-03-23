@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="me.ywork.salarybill.repository.SalaryBillRepository">
+	<!-- 定义的resultMap，可以解决类的属性名和数据库列名不一致的问题 -->
+	<resultMap type="SalaryBill" id="salaryBillResultMap">
+		<id property="id" column="id"/>
+		<result property="companyId" column="companyId"/>
+		<result property="userId" column="userId"/>
+		<result property="deptId" column="deptId"/>
+		<result property="userName" column="userName"/>
+		<result property="userJobNum" column="userJobNum"/>
+		<result property="salaryMonth" column="salaryMonth"/>
+		<result property="salaryType" column="salaryType"/>
+		<result property="pretaxSalary" column="pretaxSalary"/>
+		<result property="realSalary" column="realSalary"/>
+		<result property="remark" column="remark"/>
+		<result property="createUserId" column="createUserId"/>
+		<result property="createTime" column="createTime"/>
+		<result property="salaryBillLogId" column="salaryBillLogId"/>
+		<result property="columnName" column="columnName"/>
+		<result property="readFlag" column="readFlag"/>
+		<result property="deleteFlag" column="deleteFlag"/>
+	</resultMap>
+
+	<!--所有字段列表 -->
+	<sql id="fields">
+		id,createTime,createUserId,remark,realSalary,pretaxSalary,salaryType,salaryMonth,userId,deptId,userName,userJobNum,companyId,salaryBillLogId,columnName,readFlag
+	</sql>
+
+	<!--从实体中取值 -->
+	<sql id="values">
+		#{id},#{createTime},#{createUserId},#{remark},#{realSalary},#{pretaxSalary},#{salaryType},#{salaryMonth},#{userId},#{deptId},#{userName},#{userJobNum},#{companyId},#{salaryBillLogId},#{columnName},#{readFlag}
+	</sql>
+
+	<!-- insert语句 -->
+	<insert id="insert" parameterType="SalaryBill" useGeneratedKeys="false"
+		keyProperty="id" keyColumn="id" >
+		insert into SalaryBill(
+		<include refid="fields"></include>
+		)
+		values(
+		<include refid="values"></include>
+		)
+	</insert>
+
+	<!-- update语句 -->
+	<update id="update" parameterType="SalaryBill">
+		Update salarybill Set id = #{id},
+		salaryDetail = #{salaryDetail},
+		createTime = #{createTime},
+		createUserId = #{createUserId},
+		remark = #{remark},
+		realSalary = #{realSalary},
+		pretaxSalary = #{pretaxSalary},
+		salaryType = #{salaryType},
+		salaryMonth = #{salaryMonth},
+		userId = #{userId},
+		deptId = #{deptId},
+		corpId = #{corpId} 
+		Where companyId = #{companyId} AND id = #{id}
+	</update>
+	
+	
+	<!-- update语句 -->
+	<update id="setReaded" >
+		Update salarybill Set 
+		readFlag = 1
+		Where companyId = #{companyId} AND id = #{id}
+	</update>
+
+
+	<!-- 根据ID删除数据 -->
+	<delete id="deleteById">
+		delete from SalaryBill where companyId = #{corpId} And id=#{id}
+	</delete>
+	
+
+	<!-- 根据ID查询实体 -->
+	<select id="findById" resultType="SalaryBill">
+		Select
+		<include refid="fields"></include>
+		from SalaryBill
+		where companyId = #{corpId} And 
+		      id = #{id}
+	</select>
+
+
+	<!-- 根据ID判断实体是否存在 -->
+	<select id="exists" resultType="boolean">
+		Select 1
+		from SalaryBill where companyId = #{corpId} And id = #{id}
+	</select>
+	
+	<select id="historySalary" resultType="me.ywork.salarybill.model.SalaryHistoryDispalyModel">
+		select s.salaryBillLogId as logId, 
+		(case when IFNULL(l.title, '') = '' then concat(l.salaryMonth,l.salaryType) else l.title end) as title,
+		l.createTime
+		from SalaryBill s,SalaryBillLog l
+		where s.companyId = l.companyId
+		and   s.salaryBillLogId = l.id
+		and   l.deleteFlag = 0
+		and   s.companyId = #{companyId}
+		and   s.userId = #{userId}
+		order by l.createtime desc
+	</select>
+	
+	
+	<select id="viewSalary" resultType="me.ywork.salarybill.model.SalaryBillModel">
+		Select
+		s.id,
+		s.createTime,
+		s.createUserId,
+		s.remark,
+		s.realSalary,
+		s.pretaxSalary,
+		s.salaryType,
+		s.salaryMonth,
+		s.userId,
+		s.deptId,
+		s.userName,
+		s.userJobNum,
+		s.companyId,
+		s.salaryBillLogId as logId,
+		t.id as template,
+		s.columnName,
+		l.title,
+		l.signs
+		from SalaryBill s 
+		inner join SalaryBillLog l  
+					on s.companyId = l.companyId and 
+					s.salaryBillLogId = l.id and 
+					l.deleteFlag = 0
+		left join SalaryBillSystemTemplate t on l.template = t.id
+		
+		where s.companyId = #{companyId} AND
+		      s.userId = #{userId} 
+		      <if test="salaryMonth != -1 and salaryMonth !=0">
+		     	AND s.salaryMonth = #{salaryMonth}
+		     	and t.id = #{templateId}
+		      </if>
+		      <if test="salaryLogId != null">
+		      	AND s.salaryBillLogId = #{salaryLogId}
+		      </if>
+			 <if test="salaryMonth == 0">
+		     	and s.salaryMonth = (
+					select sb.salaryMonth from SalaryBill sb inner join SalaryBillLog sl
+					on sb.companyId = sl.companyId and 
+						sb.salaryBillLogId = sl.id and 
+						sl.deleteFlag = 0 and sb.companyId =  #{companyId} and   sb.userId = #{userId} 
+					order by sb.salaryMonth desc ,sb.createtime desc limit 1)
+		     </if>
+		order by s.createTime desc limit 1     
+	</select>
+	
+	<select id="viewSalary4other" resultType="me.ywork.salarybill.model.SalaryBillModel">
+		Select
+		s.id,s.createTime,s.createUserId,s.remark,s.realSalary,s.pretaxSalary,
+		s.salaryType,s.salaryMonth,s.userId,s.deptId,s.userName,s.userJobNum,s.companyId,
+		s.salaryBillLogId as logId,t.id as template
+		from SalaryBill s inner join SalaryBillLog l  
+		on s.companyId = l.companyId and 
+		s.salaryBillLogId = l.id and 
+		l.deleteFlag = 0
+		left join SalaryBillSystemTemplate t on l.template = t.id
+		      
+		where s.companyId = #{companyId} AND
+		      s.userId = #{userId} 
+		      AND s.salaryMonth = #{salaryMonth}
+		order by s.createTime desc limit 1     
+	</select>
+	
+	<!-- 
+	<select id="viewSalary" resultType="com.landray.lanyun.salarybill.model.SalaryBillModel">
+		Select
+		s.id,s.createTime,s.createUserId,s.remark,s.realSalary,s.pretaxSalary,
+		s.salaryType,s.salaryMonth,s.userId,s.deptId,s.userName,s.userJobNum,s.companyId,s.salaryBillLogId
+		from SalaryBill s inner join SalaryBillLog l  
+		on s.companyId = l.companyId and 
+		s.salaryBillLogId = l.id and 
+		l.deleteFlag = 0
+		where s.companyId = #{companyId} AND
+		      s.userId = #{userId} 
+		      <if test="salaryMonth != -1 and salaryMonth !=0">
+		     	AND s.salaryMonth = #{salaryMonth}
+		      </if>
+		      <if test="salaryLogId != null">
+		      	AND s.salaryBillLogId = #{salaryLogId}
+		      </if>
+			 <if test="salaryMonth == 0">
+		     	and s.salaryMonth = (
+					select sb.salaryMonth from SalaryBill sb inner join SalaryBillLog sl
+					on sb.companyId = sl.companyId and 
+						sb.salaryBillLogId = sl.id and 
+						sl.deleteFlag = 0 and sb.companyId =  #{companyId} and   sb.userId = #{userId} 
+					order by sb.salaryMonth desc ,sb.createtime desc limit 1)
+		     </if>
+	</select> -->
+	
+	<!-- 
+	<select id="getUserInfoByCompany" resultType="com.landray.lanyun.salarybill.model.UserModel">
+/*TDDL:ding_org_element.fd_orgid=#{companyId}*/
+Select d.userId,d.userJobNum, d.userName,GROUP_CONCAT(d.deptName) as deptName
+ From (
+Select eu.fd_dingid as userId, GROUP_CONCAT(e.fd_name order by  length(e.fd_hierarchy_id) SEPARATOR '/') as deptName,eu.fd_no as userJobNum
+,eu.fd_name as userName
+          from ding_org_element as e
+                  INNER JOIN ding_org_element as eu on eu.fd_orgid = #{companyId} AND
+                                                                         eu.fd_orgid = e.fd_orgid and 
+                                                                         FIND_IN_SET(e.fd_id, REPLACE(eu.fd_hierarchy_id, 'x', ',')) > 0 AND
+                                                                         eu.fd_org_type = 64
+          where e.fd_orgid = #{companyId} AND
+                   e.fd_org_type = 2 
+GROUP BY eu.fd_dingid, eu.fd_parentId
+ORDER BY eu.fd_dingid, eu.fd_parentId
+) as d
+where 1 = 1
+GROUP BY d.userId
+ORDER BY d.deptName,userId
+	</select>  
+	
+	<select id="getUserInfoByCompany" resultType="com.landray.lanyun.salarybill.model.UserModel">
+		Select eu.fd_dingid as userId,pe.fd_no as userJobNum,pe.fd_name as userName, 
+			eu.fd_parentId as parentId, e.fd_name as deptName, LENGTH(e.fd_hierarchy_id) as pathLength
+		 from ding_org_element as e
+					INNER JOIN ding_org_element as eu on eu.fd_orgid = e.fd_orgid and 
+			FIND_IN_SET(e.fd_id, REPLACE(eu.fd_hierarchy_id, 'x', ',')) > 0 AND
+			eu.fd_org_type = 64
+			
+			INNER JOIN ding_org_element as pe on pe.fd_orgid = eu.fd_orgid
+				and pe.fd_dingid= eu.fd_dingid
+				and pe.fd_org_type = 8 and pe.fd_is_available = 1
+			
+		 where e.fd_orgid = #{companyId} AND
+					 e.fd_org_type = 2 
+	order by  eu.fd_parentId, eu.fd_dingid,pathLength
+	</select>-->
+	
+	<!-- 170214
+	<select id="getUserInfoByCompany" resultType="me.ywork.salarybill.model.UserModel">
+		Select  eu.fd_dingid as userId,
+				eu.fd_name as userName ,
+				eu.fd_hierarchy_id as hierarchy,
+				eu.fd_no as userJobNum
+		from ding_org_element as e
+		INNER JOIN ding_org_element as eu  on  eu.fd_orgid = e.fd_orgid  
+										   and eu.fd_org_type = 64  
+										   and eu.fd_parentid = e.fd_id  
+									       and eu.  is not null
+		INNER JOIN ding_org_element as pe on  pe.fd_orgid = eu.fd_orgid
+										  and binary pe.fd_dingid= eu.fd_dingid
+										  and pe.fd_dingid= eu.fd_dingid
+										  and pe.fd_org_type = 8 and pe.fd_is_available = 1
+		where e.fd_orgid = #{companyId}  AND e.fd_org_type = 2 
+		
+		order by eu.fd_parentid,eu.fd_dingid 
+	</select> 
+	-->
+	
+	<select id="getUserInfoByCompany" resultType="me.ywork.salarybill.model.UserModel">
+	<!-- 
+		Select  eu.fd_dingid as userId,
+				eu.fd_name as userName ,
+				eu.fd_hierarchy_id as hierarchy,
+				eu.fd_no as userJobNum,
+				eu.fd_parentid as parentId
+		from  ding_org_element as eu 
+		where eu.fd_orgid = #{companyId} 
+		and eu.fd_org_type = 64    
+		and eu.fd_is_sync = 1 -->
+		
+		Select  eu.fd_dingid as userId,
+				eu.fd_name as userName ,
+				eu.fd_hierarchy_id as hierarchy,
+				eu.fd_no as userJobNum,
+				eu.fd_parentid as parentId,
+				(case when ifnull(u.fd_Mobile,'') = '' then u.fd_Mobile2 else u.fd_Mobile end) as mobileNo
+		from  ding_org_element as eu ,ding_org_user u
+		where eu.fd_orgid = u.fd_orgid
+		and eu.fd_dingid = u.fd_userid
+		and eu.fd_orgid = #{companyId} 
+		and eu.fd_org_type = 64    
+		and eu.fd_is_sync = 1
+	</select> 
+	
+	<select id="getDeptInfoByCompany" resultType="me.ywork.salarybill.model.OrgDeptModel">
+		Select e.fd_id as id,
+			   e.fd_name as deptName
+		 from ding_org_element as e
+		 where e.fd_orgid = #{companyId}  
+		 		AND e.fd_org_type = 2 
+		 		AND fd_is_available = 1
+	</select>
+	
+	
+	<!-- 批次保存excel数据，将多个SQL语句合并成一次数据库请求 -->
+	<insert id="saveSalaryBills" useGeneratedKeys="false" keyProperty="id">
+		<!-- 批量插入主表 -->
+		<if test="salaryBills != null">
+			insert into SalaryBill (<include refid="fields"></include>)
+			    values
+			    <foreach collection="salaryBills" index="i" item="sb" open="" close="" separator=",">
+			    	(
+			    		#{sb.id},#{sb.createTime},#{sb.createUserId},#{sb.remark},#{sb.realSalary},
+			    		#{sb.pretaxSalary},#{sb.salaryType},#{sb.salaryMonth},#{sb.userId},#{sb.deptId},#{sb.userName},#{sb.userJobNum},#{sb.companyId},#{sb.salaryBillLogId},#{sb.columnName}
+			    		,#{sb.readFlag}
+			    	)
+			    </foreach>
+			    ;
+		</if>
+		<!-- 批量插入明细表-->
+		<if test="salaryBillItems != null">
+			insert into SalaryBillItem
+			(companyId,itemName,itemValue,serNo,salaryBillId,id)
+			    values
+			    <foreach collection="salaryBillItems" index="i" item="sbi" open="" close="" separator=",">
+			    	(#{sbi.companyId},#{sbi.itemName},#{sbi.itemValue},#{sbi.serNo},#{sbi.salaryBillId},#{sbi.id})
+			    </foreach>
+			    ;
+		</if>
+	</insert>
+	
+	<!-- 根据ID判断实体是否存在 -->
+	<select id="existsUser" resultType="boolean">
+		Select 1
+		from SalaryBillPwdSet where 
+		companyId = #{companyId} And 
+		userId = #{userId} And
+		passwordType = #{passwordType}
+	</select>
+	
+	<!-- 利用SQL去除指定列表中已经存在的考勤组成员 -->
+	<!-- DRDS不支持，关联查询数据不正确 -->
+	<select id="notExistsUser" resultType="String">
+	
+		select fd_userId as userId from ding_org_user  where 
+			fd_orgid = #{companyId} 
+		And fd_userId in  
+		(
+		    <foreach collection="userids" index="i" item="u" separator=",">
+			    #{u.userId}
+			</foreach>
+		)
+		
+		<!-- 
+			Select su.userId
+		    from 
+		    	<foreach collection="userids" item="u" open="(" close=")" separator="union all">
+		    			Select #{u.userId} as userId,#{u.companyId} as companyId
+		    	</foreach>
+		    	as su
+		    	Left Join ding_org_user as org on su.companyId = org.fd_orgid and 
+		    								   su.userId = org.fd_userid and
+		    								   org.fd_orgid = #{companyId}
+		   Where su.companyId = #{companyId} AND
+		         IFNULL(org.fd_id, '') = '' -->
+	</select>
+	
+	<!-- 埋点agentid -->
+	<select id="findAgentId" parameterType="java.lang.String" resultType="string">
+		SELECT a.agentId FROM ding_suite_third_app as a, 
+		ding_suite_third_main as t ,ding_suite_main m
+		WHERE t.corpId = #{corpId}
+		and a.appId = #{appId}
+		and m.id = #{suiteId}
+		and a.thirdId = t.id
+		and m.id = t.suiteId
+		and a.enabled = 1
+		order by a.createDate desc 
+		limit 1
+	</select>
+	
+	<!-- 用户模板 -->
+	<select id="hasDataSystemTemplate" resultType="me.ywork.salarybill.model.SalaryBillTemplateModel">
+		Select distinct l.id as logid,b.salaryType, t.id,t.tempName
+		from SalaryBillSystemTemplate t, SalaryBillLog l, SalaryBill b
+		where b.companyId = #{companyId} and 
+			  l.companyId = #{companyId} and
+			  b.userId = #{userId} and
+			  b.salaryMonth = #{salaryMonth} and
+			  b.companyId = l.companyId and
+			  b.salaryBillLogId = l.id and
+			  l.template = t.id and l.deleteFlag = 0
+	</select>
+	
+	<!--公司模板-->
+	<select id="myTemplates" resultType="me.ywork.salarybill.model.SalaryBillTemplateModel">
+		Select id,tempName
+		from SalaryBillSystemTemplate 
+		order by tempSort 
+	</select>
+	
+	
+	<select id="getCorpByAppId" resultType="me.ywork.salarybill.model.CorpAdminMessage">
+			select u.fd_userid as userId,u.fd_orgid as company from ding_org_user u where u.fd_orgid in(
+				select t.fd_corp_id from ding_suite_third_app a,ding_suite_third t 
+			 where a.fd_suite_third_id = t.fd_id 
+			and
+			a.fd_app_id = #{appid}
+			) and u.fd_is_admin = 1
+			 order by u.fd_orgid
+	</select>
+	
+	<resultMap type="me.ywork.salarybill.model.OrgPcModel" id="orgTree">  
+        <id column="id" property="id"/>  
+        <result column="orgType" property="orgType"/>  
+        <result column="name" property="text"/>  
+        <result column="parentId" property="parent"/>  
+        <result column="dingId" property="dingId"/>  
+        <result column="children" property="children"/>
+        <result column="icon" property="icon"/>
+        <association property="state" javaType="me.ywork.salarybill.model.OrgPcSelectedStatusModel">  
+            <result property="selected" column="selected" jdbcType="BOOLEAN"/>  
+        </association>  
+    </resultMap>  
+    
+    <!-- 子部门 -->
+	<select id="findOrgSubDetpByDeptId" resultType="me.ywork.salarybill.model.OrgTreeModel">
+			 select doe.fd_name as name,'2' as type,
+	             doe.fd_dingid as id,count(u.fd_id) as count
+			    from ding_org_element as doe 
+	                inner join  ding_org_element p on  doe.fd_orgid = p.fd_orgid 
+												  and  doe.fd_parentid = p.fd_id
+												  and doe.fd_orgid=#{companyId}
+  												  and doe.fd_org_type = 2
+												  and p.fd_dingid =#{deptId}
+												  and doe.fd_is_available = 1
+	               left join ding_org_element u on doe.fd_orgid = u.fd_orgid
+	                                            and u.fd_hierarchy_id like concat("%x",doe.fd_id,"x%")
+												and u.fd_org_type = 64
+												and doe.fd_orgid=#{companyId}
+												and u.fd_is_available = 1 
+												and u.fd_is_sync = 1 
+					 group by doe.fd_id ORDER By NULL									
+												
+	</select>
+	
+	
+	<!-- 成员列表 -->
+	<select id="findOrgUserByDeptId" resultType="me.ywork.salarybill.model.OrgTreeModel">
+	     select  doe.fd_name as name,
+	             doe.fd_dingid as id,
+	             '8' as type,
+	             u.fd_avatar as avatar
+	 	from ding_org_element as doe 
+	 	inner join ding_org_element as p on doe.fd_orgid = p.fd_orgid 
+	 									and doe.fd_parentid = p.fd_id
+	 									and doe.fd_orgid=#{companyId}
+	 									and doe.fd_org_type = 64
+	 									and p.fd_dingid = #{deptId}
+	 									and doe.fd_is_available = 1
+	    left join ding_org_user u on doe.fd_orgid = u.`fd_orgid` 
+								and u.fd_userid = doe.fd_dingid
+	      
+	</select>
+	
+	
+	<!-- 公司名 -->
+	<select id="findCorpName" resultType="String">
+	    select  doe.fd_name as name
+	 	from ding_org_element as doe 
+	 	where doe.fd_orgid=#{companyId}
+	 		  and doe.fd_dingid = '1'
+	 		  and doe.fd_org_type = 2 
+	 		  and doe.fd_is_available = 1
+	 		  limit 1
+	</select>
+	
+	<!-- 根据ID查询实体 -->
+	<select id="findDingElementById" resultType="me.ywork.salarybill.model.SalaryBillNoPwdModel">
+		Select fd_id as id ,
+		       fd_dingid as userId,
+		       fd_org_type as type,
+		       fd_orgid as companyId,
+		       fd_name as name,
+		       fd_hierarchy_id as hierarchyId  
+		       from ding_org_element
+		where fd_orgid = #{companyId} and 
+		      fd_dingid = #{id} 
+		      <if test="type != null">
+			     and  fd_org_type =#{type} 
+		      </if>
+		      and fd_is_available = 1
+		      limit 1
+	</select>
+	
+	<delete id="deleteSalaryBillNoPwdSelectedItem">
+	   delete from salaryBillNoPwdSelectedItem where companyId=#{companyId}
+	     and eid = #{userId}
+	</delete>
+</mapper>

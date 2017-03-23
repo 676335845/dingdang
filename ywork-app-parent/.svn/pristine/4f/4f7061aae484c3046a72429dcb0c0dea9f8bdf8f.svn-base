@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper
+	namespace="me.ywork.org.repository.DingOrgCorpRepository">
+	<resultMap id="corpResultMap" type="me.ywork.org.entity.DingOrgCorp">
+		<id property="id" jdbcType="VARCHAR" column="fd_id" />
+		<result property="fdCorpName" jdbcType="VARCHAR" column="fd_corp_name" />
+		<result property="fdAppkey" jdbcType="VARCHAR" column="fd_appkey" />
+		<result property="fdPicurl" jdbcType="VARCHAR" column="fd_picurl" />
+		<result property="fdIsAbandon" jdbcType="VARCHAR" column="fd_is_abandon" />
+		<result property="fdLastSyncTime" jdbcType="TIMESTAMP" column="fd_last_sync_time" />
+	</resultMap>
+	
+	<update id="updateLastSyncTime"
+		parameterType="me.ywork.org.entity.DingOrgCorp">
+		UPDATE ding_org_corp SET
+		fd_last_sync_time = #{fdLastSyncTime}
+		WHERE fd_id = #{id}
+	</update>
+	
+	<select id="countAll" resultType="java.lang.Long">
+		SELECT count(fd_id) FROM ding_org_corp
+	</select>
+	
+	<select id="load" parameterType="java.lang.String" resultMap="corpResultMap">
+		SELECT * FROM ding_org_corp WHERE fd_id = #{id}
+	</select>
+	
+	<select id="getCorpByAppKey" parameterType="java.lang.String" resultMap="corpResultMap">
+		SELECT * FROM ding_org_corp WHERE fd_appkey = #{fdAppkey} LIMIT 1
+	</select>
+	
+	<!-- 用于压力测试，随机从组织架构中获取一个企业ID来进行测试 -->
+	<select id="getRandomCompanyId" resultType="java.lang.String">
+		select fd_corp_id from ding_suite_third where rand() > #{0} limit 1
+	</select>
+	
+	<!-- 查询所有的ID -->
+	<select id="findAllIds" resultType="java.lang.String">
+		SELECT fd_id FROM ding_org_corp
+	</select>
+	
+	<delete id="delete" parameterType="java.lang.String">
+		DELETE FROM ding_org_corp WHERE fd_id = #{id};
+	</delete>
+	
+	<!-- 插入 -->
+	<insert id="insert" keyProperty="id"
+		parameterType="me.ywork.org.entity.DingOrgCorp">
+		INSERT INTO ding_org_corp (
+			fd_id,
+			fd_corp_name,
+			fd_appkey,
+			fd_picurl
+		) VALUES (
+			#{id},
+			#{fdCorpName},
+			#{fdAppkey},
+			#{fdPicurl}
+		);
+	</insert>
+
+	<sql id="updateCorpCommonStatement">
+		UPDATE ding_org_corp SET
+		fd_corp_name = #{fdCorpName},
+		fd_picurl = #{fdPicurl}
+		WHERE fd_id = #{id}
+	</sql>
+
+	<update id="update"
+		parameterType="me.ywork.org.entity.DingOrgCorp">
+		<include refid="updateCorpCommonStatement" />
+	</update>
+	
+	<update id="updateAbandoned">
+		UPDATE ding_org_corp SET fd_is_abandon = 1 WHERE fd_id = #{id};
+	</update>
+	
+</mapper>
+

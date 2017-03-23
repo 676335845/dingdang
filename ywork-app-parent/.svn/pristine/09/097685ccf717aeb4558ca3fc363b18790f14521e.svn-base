@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="me.ywork.salarybill.repository.SalaryBillSmsRepository">
+	<!-- 定义的resultMap，可以解决类的属性名和数据库列名不一致的问题 -->
+	<resultMap type="SalaryBillSms" id="salaryBillSmsResultMap">
+		<id property="id" column="id"/>
+		<result property="companyId" column="companyId"/>
+		<result property="userId" column="userId"/>
+		<result property="total" column="total"/>
+		<result property="usedCount" column="usedCount"/>
+		<result property="enable" column="enable"/>
+		<result property="smsMode" column="smsMode"/>
+		<result property="smsShow" column="smsShow"/>
+		<result property="createDate" column="createDate"/>
+		<result property="modifiedDate" column="modifiedDate"/>
+	</resultMap>
+
+	<!--所有字段列表 -->
+	<sql id="fields">
+		id,companyId,userId,total,usedCount,enable,smsMode,smsShow,createDate,modifiedDate
+	</sql>
+
+	<!--从实体中取值 -->
+	<sql id="values">
+		#{id},#{companyId},#{userId},#{total},#{usedCount},#{enable},#{smsMode},#{smsShow},#{createDate},#{modifiedDate}
+	</sql>
+
+	<!-- insert语句 -->
+	<insert id="insert" parameterType="SalaryBillAdmin" useGeneratedKeys="false"
+		keyProperty="id" keyColumn="id" >
+		insert into SalaryBillSms(
+		<include refid="fields"></include>
+		)
+		values(
+		<include refid="values"></include>
+		)
+	</insert>
+
+	<!-- update语句 -->
+	<update id="update" parameterType="SalaryBillSms">
+		Update SalaryBillSms 
+		Set total = #{total},
+			enable = #{enable},
+			smsMode = #{smsMode},
+			smsShow = #{smsShow},
+			modifiedDate = now()
+		Where companyId = #{companyId} AND id = #{id}
+	</update>
+	
+	<select id="notExistsUser" resultType="String">
+		select fd_userId as userId from ding_org_user  where 
+			fd_orgid = #{companyId} 
+		And fd_userId in  
+		(
+		    <foreach collection="userids" index="i" item="u" separator=",">
+			    #{u.userId}
+			</foreach>
+		)
+	</select>
+
+
+	<!-- 根据ID删除数据 -->
+	<delete id="deleteById">
+		delete from SalaryBillSms where companyId = #{corpId} And id=#{id}
+	</delete>
+	
+
+	<!-- 根据ID查询实体 -->
+	<select id="findById" resultType="SalaryBillSms">
+		Select
+		<include refid="fields"></include>
+		from SalaryBillSms
+		where companyId = #{corpId} And 
+		      id = #{id}
+	</select>
+	
+	<!-- 根据ID查询实体 -->
+	<select id="findByCorpId" resultType="SalaryBillSms">
+		Select
+		<include refid="fields"></include>
+		from SalaryBillSms
+		where companyId = #{corpId} 
+	</select>
+	
+
+	<!-- 根据ID判断实体是否存在 -->
+	<select id="exists" resultType="boolean">
+		Select 1
+		from SalaryBillSms where companyId = #{companyId} And id = #{id}
+	</select>
+	
+	<select id="countCorpUsers" resultType="Integer">
+		select count(1) from ding_org_element where fd_orgid = #{corpId} and fd_org_type = 8 and fd_is_available = 1
+	</select>
+	
+	
+	
+	
+	<update id="updateSms">
+		Update SalaryBillSms 
+		Set total = total-#{sendCount},
+			usedCount = usedCount+#{sendCount},
+			modifiedDate = now()
+		Where companyId = #{companyId}
+	</update>
+	
+</mapper>

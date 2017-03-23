@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans        
+    http://www.springframework.org/schema/beans/spring-beans.xsd        
+    http://code.alibabatech.com/schema/dubbo        
+    http://code.alibabatech.com/schema/dubbo/dubbo.xsd
+ 	http://www.springframework.org/schema/util
+    http://www.springframework.org/schema/util/spring-util-3.2.xsd">
+    
+	<util:properties id="dubboConfig" location="classpath:dubbo.properties" />
+	<dubbo:application name="ywork-salary-server"  />
+ 	<dubbo:registry address="#{dubboConfig.dubboRegistryAddress}" />
+ 	<dubbo:protocol name="dubbo" port="#{dubboConfig.dubboProtocolPort}" />
+	<dubbo:consumer check="false"/>
+	<import resource="classpath:META-INF/rpc/dubbo-suite-api.xml"/> 
+	<!-- 声明需要暴露的服务接口 
+	<import resource="classpath:META-INF/rpc/dubbo-lancloud-mpapi.xml"/> 
+	
+	<dubbo:service timeout="30000" interface="me.ywork.lancloud.service.MpRpcService"
+				   ref="mpRpcServiceImpl"/>
+	<bean id="mpRpcServiceImpl" class="me.ywork.lancloud.mp.rpc.MpRpcServiceImpl"/>-->
+	
+		
+</beans> 

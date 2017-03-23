@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="me.ywork.salary.repository.SalAttendanceRepository">
+
+    <!--table dingsal_staff_attendance 员工考勤表-->
+    <sql id="staff_attendance_fields">
+       id,attendance_day,rest_days, work_hours,late_hours,
+       late_times, seriouslate_hours,seriouslate_times,
+        earlyleave_hours,earlyleave_times,workabsence_times,
+        offwork_absence_times,unwork_days,unwork_late_days,
+        atten_report_id,ding_staffid,month_time,create_date,modified_date,corp_id
+    </sql>
+    
+    <sql id="staff_attendance_values">
+      #{id},#{attendanceDays},#{restDays},#{workHours},#{lateHours},
+      #{lateTimes},#{seriousLateHours},#{seriousLateTimes},
+      #{earlyLeaveHours},#{earlyLeaveTimes},#{workAbsenceTimes},
+      #{offWorkAbsenceTimes},#{unWorkDays},#{unWorkLateDays},
+      #{attenReportId},#{dingStaffId},#{monthTime},#{createDate},
+      #{modifiedDate},#{corpId}
+    </sql>
+
+     <!-- table staff_attenday  员工考勤请假的天数表-->
+    <sql id="staff_attenday_fields">
+      id,ding_staffid,corp_id,atten_reportid,field_id,
+      field_day,create_date,modified_date
+    </sql> 
+    <sql id="staff_attenday_values">
+      #{id},#{dingStaffId},#{corpId},#{attenReportId},
+      #{fieldId},#{fieldDay},#{createDate},#{modifiedDate}
+    </sql> 
+    
+    <!-- table dingsal_attendance  企业考勤表 -->
+     <sql id="attendance_fields">
+        id,corp_id,create_date,modified_date,month_time
+    </sql>
+    <sql id="attendance_values">
+      #{id},#{corpId},#{createDate},#{modifiedDate},#{monthTime}
+    </sql>
+    
+    
+    <!-- 企业考勤表MAP -->
+     <resultMap id="AttendanceReportMap" type="me.ywork.salary.model.SalCorpAttenModel">
+        <id column="id" property="id"/>
+        <result column="month_time" property="monthTime"/>
+        <result column="corp_id" property="corpId"/>
+        <result column="create_date" property="createDate"/>
+        <result column="modified_date" property="modifiedDate"/>
+     </resultMap>
+     
+     <!-- 员工考勤数据MAP -->
+     <resultMap id="StaffAttendanceDisplayMap" type="me.ywork.salary.model.SalStaffAttendanceModel">
+        <id column="id" property="id"/>
+        <result column="staff_name" property="staffName"/>
+        <result column="dept_name" property="deptName"/>
+        <result column="attendance_day" property="attendanceDays"/>
+        <result column="rest_days" property="restDays"/>
+        <result column="work_hours" property="workHours"/>
+        <result column="late_hours" property="lateHours"/>
+        <result column="late_times" property="lateTimes"/>
+        <result column="seriouslate_hours" property="seriousLateHours"/>
+        <result column="seriouslate_times" property="seriousLateTimes"/>
+        <result column="earlyleave_hours" property="earlyLeaveHours"/>
+        <result column="earlyleave_times" property="earlyLeaveTimes"/>
+        <result column="workabsence_times" property="workAbsenceTimes"/>
+        <result column="offwork_absence_times" property="offWorkAbsenceTimes"/>
+        <result column="unwork_days" property="unWorkDays"/>
+        <result column="unwork_late_days" property="unWorkLateDays"/>
+        <result column="atten_report_id" property="attenReportId"/>
+        <result column="ding_staffid" property="dingStaffId"/>
+        <result column="month_time" property="monthTime"/>        
+        <result column="create_date" property="createDate"/>
+        <result column="modified_date" property="modifiedDate"/>
+        <result column="corp_id" property="corpId"/>
+     </resultMap>
+     
+     <!-- 员工考勤请假天数MAP -->
+     <resultMap id="staffAttenDayMap" type="me.ywork.salary.model.SalStaffAttenDayModel">
+         <id column="id" property="id"/>
+         <result column="ding_staffid" property="dingStaffId"/>
+         <result column="corp_id" property="corpId"/>
+         <result column="atten_reportid" property="attenReportId"/>
+         <result column="field_id" property="fieldId"/>
+         <result column="field_day" property="fieldDay"/>
+     </resultMap>
+     
+     <!-- 员工考勤数据MAP（实体） -->
+     <resultMap id="StaffAttendanceMap" type="me.ywork.salary.entity.SalCorpAttenEntity">
+        <id column="id" property="id"/>
+        <result column="attendance_day" property="attendanceDays"/>
+        <result column="rest_days" property="restDays"/>
+        <result column="work_hours" property="workHours"/>
+        <result column="late_hours" property="lateHours"/>
+        <result column="late_times" property="lateTimes"/>
+        <result column="seriouslate_hours" property="seriousLateHours"/>
+        <result column="seriouslate_times" property="seriousLateTimes"/>
+        <result column="earlyleave_hours" property="earlyLeaveHours"/>
+        <result column="earlyleave_times" property="earlyLeaveTimes"/>
+        <result column="workabsence_times" property="workAbsenceTimes"/>
+        <result column="offwork_absence_times" property="offWorkAbsenceTimes"/>
+        <result column="unwork_days" property="unWorkDays"/>
+        <result column="unwork_late_days" property="unWorkLateDays"/>
+        <result column="atten_report_id" property="attenReportId"/>
+        <result column="ding_staffid" property="dingStaffId"/>
+        <result column="month_time" property="monthTime"/>      
+        <result column="create_date" property="createDate"/>
+        <result column="modified_date" property="modifiedDate"/>
+        <result column="corp_id" property="corpId"/>
+     </resultMap>
+     
+    <!-- 根据员工考勤标识得到该员工的考勤数据 -->
+	<select id="getStaffAttendanceEntityById"  resultMap = "StaffAttendanceMap">
+	   select *
+	     from dingsal_staff_attendance
+	     where id=#{id}
+	</select>
+	
+	<!-- 得到所有的月度考勤数据 -->
+	<select id="getAllMonthesAttendanceData" resultMap = "AttendanceReportMap">
+	    select  *
+         from dingsal_corp_attenreport
+	     where corp_id =#{corpId}	
+	     order by month_time desc  
+	</select>
+	
+	<!-- 查询企业总的考勤表总数 -->
+	<select id ="getAttendanceDataCountByCorpId" resultType = "java.lang.Integer">
+		 select count(id)
+		     from dingsal_corp_attenreport
+		     where corp_id = #{corpId}     
+	</select>
+	
+	<!-- 根据考勤表的id得到当月所有员工的考勤数据 -->
+	<select id = "getAllStaffAttendanceByReportId" resultMap = "StaffAttendanceDisplayMap">
+	     select 
+		        e.fd_name as staff_name,staffAttendance.id,
+		        attendance_day,rest_days,work_hours,late_hours,
+		        late_times,seriouslate_hours,seriouslate_times,
+		        earlyleave_hours,earlyleave_times,workabsence_times,
+		        offwork_absence_times,unwork_days,unwork_late_days,
+	            atten_report_id,staffAttendance.corp_id,ding_staffid,
+	            staffAttendance.create_date,staffAttendance.modified_date,
+	            staffAttendance.month_time
+	        from dingsal_staff_attendance staffAttendance,
+	             ding_org_element e left join ding_org_element pe
+	             on e.fd_parentid=pe.fd_id and
+	                e.fd_orgid=pe.fd_orgid
+	        where 
+	          staffAttendance.corp_id = e.fd_orgid and
+              staffAttendance.ding_staffid =e.fd_dingid and
+              staffAttendance.corp_id=#{corpId} and
+              e.fd_org_type = 64 and 
+              <if test="reportId!=null">   
+               staffAttendance.atten_report_id = #{reportId}
+              </if> 
+              <if test="monthTime!=null">
+                staffAttendance.month_time=#{monthTime}
+              </if>
+              group by e.fd_dingid
+              order by  pe.fd_name           
+              <if test="type==1">
+                 limit #{beginNum},#{endNum}	   
+              </if>           
+	</select>
+	
+	<!--  根据考勤表的id得到当月所有员工的考勤数据的总数 -->
+	<select id = "getAllStaffAttendanceCountByReportId" resultType = "java.lang.Integer">
+	     select count(id)
+	        from dingsal_staff_attendance
+	        where atten_report_id=#{reportId}        
+	</select>
+	
+     <!-- 获取选中人员该月考勤详情(编辑考勤):管理员可以选择多个员工和该月考勤的ID来得到这些员工的考勤详情 -->
+	<select id="getMutiStaffAttendanceDetail" resultMap = "StaffAttendanceDisplayMap">
+	     select
+	        e.fd_name as staff_name, pe.fd_name as dept_name,
+	        staffAttendance.id,attendance_day,rest_days,
+	        work_hours,late_hours,late_times,seriouslate_hours,
+	        seriouslate_times,earlyleave_hours,earlyleave_times,
+            workabsence_times,offwork_absence_times,unwork_days,
+            unwork_late_days,atten_report_id,attendance.corp_id,ding_staffid,
+            staffAttendance.create_date,staffAttendance.modified_date,
+            staffAttendance.month_time
+	        from 
+                 dingsal_staff_attendance staffAttendance,
+	             dingsal_corp_attenreport attendance,
+	             ding_org_element e INNER JOIN ding_org_element as pe
+		          on e.fd_parentid = pe.fd_id	  
+	        where 
+	          staffAttendance.atten_report_id = attendance.id and
+	          attendance.corp_id = e.fd_orgid and
+              staffAttendance.ding_staffid =e.fd_dingid and
+              e.fd_org_type = 64 and      
+	          atten_report_id= #{reportId} and	
+	              ding_staffid in           
+                 <foreach collection="staffIds" item="dingStaffId" index="i" open="("
+												 separator="," close=")">
+					#{dingStaffId}
+				</foreach>
+	</select>  
+	
+	<!-- 更新员工的考勤数据  -->
+	<update id="updateMutiStaffAttendance" parameterType="me.ywork.salary.entity.SalCorpAttenEntity"> 
+            update 
+               dingsal_staff_attendance
+		     set
+		        attendance_day = #{attendanceDays},
+		        rest_days = #{restDays},
+		        work_hours = #{workHours},
+		        late_hours = #{lateHours},
+		        late_times = #{lateTimes},
+		        seriouslate_hours = #{seriousLateHours},
+		        seriouslate_times = #{seriousLateTimes},
+		        earlyleave_hours = #{earlyLeaveHours},
+		        earlyleave_times = #{earlyLeaveTimes},
+		        workabsence_times = #{workAbsenceTimes},
+		        offwork_absence_times = #{offWorkAbsenceTimes},
+		        unwork_days = #{unWorkDays},
+		        unwork_late_days = #{unWorkLateDays},
+		        modified_date = #{modifiedDate}	          
+	        where 
+		        id=#{id}
+	</update>   
+	
+	<!-- 根据考勤报表的时间查询是否存在该月的考勤报表 -->
+	<select id="getAttenByMonthTime" resultMap="AttendanceReportMap">
+	  select 
+	       * from dingsal_corp_attenreport attenReport
+	       where
+	         attenReport.month_time =#{monthTime} and
+	         attenReport.corp_id=#{corpId}
+	</select>  	
+	   
+	<!-- 根据考勤报表的时间删除用户的考勤数据 --> 
+    <delete id="deleteCorpMonthAtten">
+         delete 
+            from 
+              dingsal_corp_attenreport
+                where id=#{reportId};            
+    </delete> 	  
+    
+    <!-- 删除在某考勤表下员工的考勤天数 -->
+     <delete id="deleteAttenday">
+          delete
+           from dingsal_staff_attenday
+            where atten_reportid=#{reportId};    
+    </delete> 
+    
+    <!-- 删除所有员工在某考勤表下的考勤数据 -->
+     <delete id="deleteStaffAttence">
+         delete 
+           from dingsal_staff_attendance 
+           where atten_report_id=#{reportId};    
+    </delete> 
+    
+    <!-- 新增考勤报表 -->    
+    <insert id="insertCorpAttenReportData" parameterType="me.ywork.salary.model.SalCorpAttenModel">
+         insert into dingsal_corp_attenreport
+         (<include refid="attendance_fields"></include>)		
+		 values(<include refid="attendance_values"></include>)	   
+    </insert>   
+    
+    <!-- 新增员工考勤数据 -->
+    <insert id="insertStaffAttenData" parameterType="me.ywork.salary.entity.SalCorpAttenEntity">
+       insert into dingsal_staff_attendance
+         (<include refid="staff_attendance_fields"></include>)		
+		 values(<include refid="staff_attendance_values"></include>)	   
+    </insert>  
+    
+    <!-- 新增员工考勤请假天数 -->
+    <insert id="insertStaffAttenDay" parameterType="me.ywork.salary.entity.SalStaffAttenDayEntity">
+      insert into dingsal_staff_attenday
+      (<include refid="staff_attenday_fields"></include>)		
+      values
+      (<include refid="staff_attenday_values"></include>)	   
+    </insert>
+    
+    <!--得到员工自定义请假信息列表-->
+    <select id="getSalStaffAttenDayInfos" resultMap="staffAttenDayMap">
+        select * from 
+          dingsal_staff_attenday 
+          where corp_id=#{corpId} and
+                atten_reportid = #{reportId} and
+                ding_staffid = #{staffId}
+    </select>
+    
+    <!-- 得到员工该月的考勤基本信息（除去请假） -->
+    <select id="getStaffAttendanceByMonthTime" resultMap="StaffAttendanceMap">
+        select *from 
+          dingsal_staff_attendance
+          where
+              ding_staffid =#{staffId} and
+              atten_report_id = 
+              (
+               select id 
+                     from dingsal_corp_attenreport 
+                     where corp_id=#{corpId} and
+                           month_time=#{monthTime}
+               )                   
+    </select>
+    
+    <!-- 删除指定考勤报表下的员工考勤数据 -->
+    <delete id="deleteStaffAttenDataUnderReportId">
+       delete from 
+              dingsal_staff_attendance
+              where 
+                atten_report_id = #{reportId} and
+                ding_staffid = #{staffId}
+    </delete>
+    
+    <!-- 得到指定考勤报表下的员工考勤数据 -->
+    <select id="getStaffAttenDataUnderReportId" resultMap="StaffAttendanceMap">
+	     select * 
+		     from 
+		        dingsal_staff_attendance
+		     where 
+		        atten_report_id = #{reportId} and
+		        ding_staffid = #{staffId}
+    </select>
+    
+        <!-- 删除指定考勤报表下的员工考勤天数  -->
+    <delete id="deleteStaffAttenDayUnderReportId">
+       delete 
+        from 
+            dingsal_staff_attenday
+        where 
+             atten_reportid = #{reportId} and
+             ding_staffid = #{staffId}
+    </delete>
+</mapper>

@@ -1,0 +1,53 @@
+log4j.rootLogger= INFO,stdout,toLogFile
+
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=[%-5p] [%d{HH:mm:ss}] %c - %m%n
+
+log4j.appender.toLogFile=org.apache.log4j.RollingFileAppender
+log4j.appender.toLogFile.File=logs/server.log
+log4j.appender.toLogFile.MaxFileSize=10MB
+log4j.appender.toLogFile.MaxBackupIndex=100
+log4j.appender.toLogFile.layout=org.apache.log4j.PatternLayout
+#log4j.appender.toLogFile.layout.ConversionPattern=%d [%t:%X{LOG_ID},%X{LOG_REQNO},%X{LOG_BEAN}:N%x][%F:%L][%p]:%m%n
+log4j.appender.toLogFile.layout.ConversionPattern=[%-5p] [%d{HH:mm:ss}] %c - %m%n
+
+log4j.logger.ACCESS = INFO,ACCESS
+log4j.appender.ACCESS=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.ACCESS.file=logs/access.log
+#log4j.appender.GAMEROLE.MaxFileSize=512KB
+#log4j.appender.GAMEROLE.MaxBackupIndex=10
+log4j.appender.ACCESS.DatePattern='.'yyyyMMdd'.log'
+log4j.appender.ACCESS.layout=org.apache.log4j.PatternLayout
+#log4j.appender.toLogFile.layout.ConversionPattern= %d :%m%n
+log4j.additivity.ACCESS=false
+
+log4j.logger.ERROR = INFO,ERROR
+log4j.appender.ERROR=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.ERROR.file=logs/error.log
+#log4j.appender.GAMEROLE.MaxFileSize=512KB
+#log4j.appender.GAMEROLE.MaxBackupIndex=10
+log4j.appender.ERROR.DatePattern='.'yyyyMMdd'.log'
+log4j.appender.ERROR.layout=org.apache.log4j.PatternLayout
+#log4j.appender.toLogFile.layout.ConversionPattern= %d :%m%n
+log4j.additivity.ERROR=false
+log4j.logger.me.ywork = INFO
+log4j.logger.org.kafka = ERROR
+log4j.logger.me.ywork.framework.messagebus = TRACE
+log4j.logger.com.heyi.framework.messagebus = TRACE
+
+
+log4j.logger.kafka = ERROR
+log4j.logger.org.springframework.web = WARN
+
+log4j.logger.org.apache.zookeeper = error
+
+log4j.logger.org.I0Itec.zkclient = error
+
+log4j.logger.com.ibatis=trace
+log4j.logger.com.ibatis.common.jdbc.SimpleDataSource=trace
+log4j.logger.com.ibatis.common.jdbc.ScriptRunner=trace
+log4j.logger.com.ibatis.sqlmap.engine.impl.SqlMapClientDelegate=trace
+log4j.logger.java.sql.Connection=trace
+log4j.logger.java.sql.Statement=trace
+log4j.logger.java.sql.PreparedStatement=trace

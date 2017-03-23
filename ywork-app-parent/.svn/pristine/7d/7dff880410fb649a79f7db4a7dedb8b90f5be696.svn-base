@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="me.ywork.salarybill.repository.SalaryBillMobileNoRepository">
+	<!-- 定义的resultMap，可以解决类的属性名和数据库列名不一致的问题 -->
+	<resultMap type="SalaryBillMobileNo" id="salaryBillMobileNoResultMap">
+		<id property="id" column="id"/>
+		<result property="companyId" column="companyId"/>
+		<result property="userId" column="userId"/>
+		<result property="dept" column="dept"/>
+		<result property="name" column="name"/>
+		<result property="jobNo" column="jobNo"/>
+		<result property="mobileNo" column="mobileNo"/>
+		<result property="createUserId" column="createUserId"/>
+		<result property="createDate" column="createDate"/>
+		<result property="modifiedDate" column="modifiedDate"/>
+	</resultMap>
+
+	<!--所有字段列表 -->
+	<sql id="fields">
+		id,companyId,userId,dept,name,jobNo,mobileNo,createUserId,createDate,modifiedDate
+	</sql>
+
+	<!--从实体中取值 -->
+	<sql id="values">
+		#{id},#{companyId},#{userId},#{dept},#{name},#{jobNo},#{mobileNo},#{createUserId},#{createDate},#{modifiedDate}
+	</sql>
+	
+	<!-- 批次保存excel数据，将多个SQL语句合并成一次数据库请求 -->
+	<insert id="batchSaveSalaryBillMobileNos" useGeneratedKeys="false" keyProperty="id">
+		<if test="salaryBillMobileNos != null">
+			insert into ding_org_user (fd_id,fd_orgid,fd_userid,fd_mobile2)
+			    values
+			    <foreach collection="salaryBillMobileNos" index="i" item="sb" open="" close="" separator=",">
+			    	(
+			    		#{sb.id},#{sb.companyId},#{sb.userId},#{sb.mobileNo}
+			    	)
+			    </foreach>
+			    ON DUPLICATE KEY UPDATE fd_mobile2=VALUES(fd_mobile2)
+			    ;
+		</if>
+	</insert>
+	
+	
+	<select id="findNoMobiles" resultType="String">
+	
+		select fd_userid from ding_org_user u
+		inner join ding_org_element e on u.fd_orgid = e.fd_orgid
+									and u.fd_userid = e.fd_dingid
+									and e.fd_is_available = 1
+									and e.fd_org_type = 8
+									and ifnull(u.fd_mobile,'') = ''
+									and ifnull(u.fd_mobile2,'') = ''
+		where u.fd_orgid = #{corpId}							
+	</select>
+	
+
+	<!-- insert语句 -->
+	<insert id="insert" parameterType="SalaryBillMobileNo" useGeneratedKeys="false"
+		keyProperty="id" keyColumn="id" >
+		
+	</insert>
+
+	<!-- update语句 -->
+	<update id="update" parameterType="SalaryBillMobileNo">
+	</update>
+	
+
+	<!-- 根据ID删除数据 -->
+	<delete id="deleteById">
+	</delete>
+	
+
+	<!-- 根据ID查询实体 -->
+	<select id="findById" resultType="SalaryBillSms">
+	</select>
+	
+
+	<!-- 根据ID判断实体是否存在 -->
+	<select id="exists" resultType="boolean">
+	</select>
+	
+	
+	
+	
+</mapper>

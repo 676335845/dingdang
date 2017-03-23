@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="me.ywork.salary.repository.SalSynCorpInfoRepository">
+
+   <!-- table corp_info   企业业务表-->
+   <sql id="dingsal_corp_info_fields">
+      id,create_date,modified_date,pass_state,corp_id
+   </sql>  
+   <sql id="dingsal_corp_info_values">
+      #{id},#{createDate},#{modifiedDate},#{passState},#{corpId}
+   </sql>
+   
+
+   <!-- table staff_info 员工业务表-->
+    <sql id="staff_info_fields">
+       id,corp_id,ding_staffid,create_date,modified_date,
+       pass_state
+    </sql>  
+    <sql id="staff_info_values">
+      #{id},#{corpId},#{dingStaffId},#{createDate},
+      #{modifiedDate},#{passState}
+    </sql>
+    
+    <!-- table:dingsal_corp_baserule 企业基本薪资规则表-->
+   <sql id="corp_baserule_fields" >
+     id,cal_sal_days,fit_nums,corp_id,create_date,
+     modified_date,sal_rule_id
+   </sql>  
+   <sql id="corp_baserule_values">
+     #{id},#{calSalDays},#{fitNums},#{corpId},
+     #{createDate},#{modifiedDate},#{salRuleId}
+   </sql>
+   
+    <!-- table dingsal_corp_deductrule  企业考勤扣款规则表-->
+    <sql id="corp_deductrule_fields">
+        id,late_early_deduct_type,late_early_deduct,
+        serious_late_deduct,stay_away_deduct,corp_id,
+        create_date,modified_date,stay_away_deduct_type,
+        lack_deduct_type,lack_deduct
+    </sql>
+    <sql id="corp_deductrule_values">
+    #{id},#{lateEarlyDeductType},#{lateEarlyDeduct},
+    #{seriousLateDeduct},#{stayAwayDeduct},#{corpId},
+    #{createDate},#{modifiedDate},#{stayAwayDeductType},
+    #{lackDeductType},#{lackDeduct}
+    </sql>
+    
+   <!-- table:dingsal_corp_whprule 企业社保公积金规则表 -->
+   <sql id="corp_whprule_fields">
+     id,subject_id,base_low,base_high,corp_percent,
+     personal_percent,corp_id,create_date,modified_date
+   </sql>
+   <sql id="corp_whprule_values">
+     #{id},#{subjectId},#{baseLow},#{baseHigh},#{corpPercent},
+     #{personalPercent},#{corpId},#{createDate},#{modifiedDate}
+   </sql>
+   
+   <!-- table:dingsal_corp_salreport 企业月度工资报表 -->
+   <sql id="corp_salreport_fields">
+     id,corp_id,create_date,modified_date,month_time
+   </sql>
+   <sql id="corp_salreport_values">
+     #{id},#{corpId},#{createDate},#{modifiedDate},#{monthTime}
+   </sql>
+   
+   <!-- table:dingsal_staff_monthsal 企业员工月度薪资数据表-->
+   <sql id="staff_monthsal_fields">
+    id,ding_staffid,sal_report_id,should_pay_sal,sal_deduct,replace_deduct,
+    actual_sal,create_date,modified_date,month_time,corp_insurance_sal,
+    staff_insurance_sal,tax_sal,atten_deduct,corp_id
+   </sql>   
+    <sql id="staff_monthsal_values">
+    #{id},#{dingStaffId},#{salReportId},#{shouldPaySal},#{salDeduct},#{replaceDeduct},
+    #{actualSal},#{createDate},#{modifiedDate},#{monthTime},#{corpInsuranceSal},
+    #{staffInsuranceSal},#{taxSal},#{attenDeduct},#{corpId}
+   </sql>
+    
+   <!-- 增加企业的基本业务信息 -->  
+   <insert id="synchCorpBaseInfo" parameterType="me.ywork.salary.entity.SalCorpInfoEntity">
+      insert into dingsal_corp_info (<include refid="dingsal_corp_info_fields"></include>)
+      values(<include refid="dingsal_corp_info_values"></include>)
+   </insert>
+   
+   <!-- 增加员工的基本业务信息  -->
+   <insert id="synchStaffBaseInfo" parameterType="me.ywork.salary.entity.SalStaffBaseInfoEntity">
+      insert into dingsal_staff_info 
+         (<include refid="staff_info_fields"></include>)
+         values
+         (<include refid="staff_info_values"></include>)
+   </insert>
+   
+   <!-- 增加企业的基本薪资规则-->
+   <insert id="synchCorpBaseRule"  parameterType="me.ywork.salary.entity.SalCorpBaseRuleEntity">
+      insert into dingsal_corp_baserule 
+         (<include refid="corp_baserule_fields"></include>)
+         values
+         (<include refid="corp_baserule_values"></include>)
+   </insert>
+   
+   <!-- 增加企业的代缴代扣的规则 -->
+   <insert id="synchCorpDeductRule" parameterType="me.ywork.salary.entity.SalCorpDeductEntity">
+     insert into dingsal_corp_deductrule 
+         (<include refid="corp_deductrule_fields"></include>)
+         values
+         (<include refid="corp_deductrule_values"></include>)
+   </insert>
+   
+   <!-- 增加企业社保公积金的规则 -->
+   <insert id="synchCorpWhpRule" parameterType="me.ywork.salary.entity.SalCorpWhpRuleEntity">
+      insert into dingsal_corp_whprule 
+         (<include refid="corp_whprule_fields"></include>)
+         values
+         (<include refid="corp_whprule_values"></include>)
+   </insert>
+   
+   <!-- 增加企业月度工资报表 -->
+   <insert id="addCorpSalReport" parameterType="me.ywork.salary.entity.SalReportEntity">
+      insert into dingsal_corp_salreport
+         (<include refid="corp_salreport_fields"></include>)
+         values
+         (<include refid="corp_salreport_values"></include>)
+   </insert>
+   
+   <!-- 增加员工月度薪资的信息 -->
+   <insert id="addStaffMonthSal" parameterType="me.ywork.salary.entity.SalStaffSalReportEntity">
+      insert into dingsal_staff_monthsal 
+          (<include refid="staff_monthsal_fields"></include>)
+         values
+         (<include refid="staff_monthsal_values"></include>)
+   </insert>
+   
+   
+   <!-- 查找企业员工的基本信息 -->
+   <select id="getCorpBaseInfoFromElement" resultType="me.ywork.salary.entity.SalStaffBaseInfoEntity">
+        select 
+          e.fd_dingid as dingStaffId,
+          e.fd_orgid as corpId,
+          e.fd_name as staffName
+          from ding_org_element e        
+          where e.fd_orgid=#{corpId} and
+                e.fd_org_type=8;
+   </select>
+</mapper>

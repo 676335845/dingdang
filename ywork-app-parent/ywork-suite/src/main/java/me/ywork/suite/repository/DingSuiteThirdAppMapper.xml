@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper
+	namespace="me.ywork.suite.repository.DingSuiteThirdAppRepositroy">
+	<resultMap id="DingSuiteThirdAppResultMap"
+		type="me.ywork.suite.entity.DingSuiteThirdApp">
+		<id property="id" jdbcType="VARCHAR" column="id" />
+		<result property="thirdId" column="thirdId" />
+		<result property="agentId" column="agentId" />
+		<result property="appId" column="appId" />
+		<result property="agentName"  column="agentName" />
+		<result property="logoUrl"  column="logoUrl" />
+		<result property="enabled" column="enabled" />
+		<result property="createDate"  column="createDate" />
+		<result property="modifiedDate"  column="modifiedDate" />
+	</resultMap>
+	
+	<!--所有字段列表 -->
+	<sql id="fields">
+		id,thirdId,agentId,appId,agentName,logoUrl,enabled,createDate,modifiedDate
+	</sql>
+
+	<sql id="values">
+		#{id},#{thirdId},#{agentId},#{appId},#{agentName},#{logoUrl},#{enabled},#{createDate}, #{modifiedDate}
+	</sql>
+	
+	
+	<select id="load" parameterType="java.lang.String" resultMap="DingSuiteThirdAppResultMap">
+		SELECT * FROM ding_suite_third_app WHERE id = #{id}
+	</select>
+	
+	
+	<select id="findAgentId" parameterType="java.lang.String" resultType="string">
+		SELECT a.agentId FROM ding_suite_third_app as a, 
+		ding_suite_third_main as t ,ding_suite_main m
+		WHERE t.corpId = #{corpId}
+		and a.appId = #{appId}
+		and m.id = #{suiteId}
+		and a.thirdId = t.id
+		and m.id = t.suiteId
+		and a.enabled = 1
+		order by a.createDate desc 
+		limit 1
+	</select>
+	
+
+	<!-- 查询所有的ID -->
+	<select id="findAllIds" resultType="java.lang.String">
+		SELECT id FROM ding_suite_third_app
+	</select>
+	
+	<delete id="delete" parameterType="java.lang.String">
+		DELETE FROM ding_suite_third_app WHERE id = #{id};
+	</delete>
+	
+	<!-- 插入 -->
+	<insert id="insert" keyProperty="id"
+		parameterType="me.ywork.suite.entity.DingSuiteThirdApp">
+		INSERT INTO ding_suite_third_app (
+			id,thirdId,agentId,
+			appId,agentName,logoUrl,
+			enabled,createDate,modifiedDate
+		) VALUES (
+			#{id},#{thirdId},#{agentId},
+			#{appId},#{agentName},#{logoUrl},
+			#{enabled},#{createDate}, #{modifiedDate}
+		);
+	</insert>
+
+	<select id="countAll" resultType="java.lang.Long">
+		SELECT count(id) FROM ding_suite_third_app
+	</select>
+	
+
+	<sql id="updateDingSuiteThirdAppCommonStatement">
+		UPDATE ding_suite_third_app SET
+		agentId = #{agentId},
+		agentName = #{agentName},
+		logoUrl = #{logoUrl},
+		appId = #{appId},
+		modifiedDate = #{modifiedDate},
+		enabled = #{enabled}
+		WHERE id = #{id}
+	</sql>
+	
+	<update id="updateAgentStatus" >
+		update ding_suite_third_app set enabled = 0 where id in (SELECT a.id from (select temp.* from ding_suite_third_app temp) a 
+			INNER JOIN ding_suite_third_main t on a.thirdId = t.id 
+			and t.corpId = #{corpId} and t.suiteId = #{suiteId} 
+			<if test="agents != null">
+				and a.agentId not in
+				<foreach collection="agents" item="agentid" index="index" open="(" close=")" separator=",">
+						#{agentid}
+				</foreach>  
+			</if>
+		);
+		<!-- -->
+		<if test="agents == null">
+			update ding_suite_third_main  set enabled = 0 
+			where corpId = #{corpId} and suiteId = #{suiteId};
+		</if> 
+		
+	</update>
+
+	<update id="update"
+		parameterType="me.ywork.suite.entity.DingSuiteThirdApp">
+		<include refid="updateDingSuiteThirdAppCommonStatement" />
+	</update>
+
+
+</mapper>
+

@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="me.ywork.salarybill.repository.SalaryBillLogRepository">
+	<!-- 定义的resultMap，可以解决类的属性名和数据库列名不一致的问题 -->
+	<resultMap type="SalaryBillLog" id="salaryBillLogResultMap">
+		<id property="id" column="id"/>
+		<result property="companyId" column="companyId"/>
+		<result property="corpName" column="corpName"/>
+		<result property="userId" column="userId"/>
+		<result property="userName" column="userName"/>
+		<result property="salaryMonth" column="salaryMonth"/>
+		<result property="salaryType" column="salaryType"/>
+		<result property="createTime" column="createTime"/>
+		<result property="fileKey" column="fileKey"/>
+		<result property="deleteFlag" column="deleteFlag"/>
+		<result property="template" column="template"/>
+		<result property="title" column="title"/>
+		<result property="signs" column="signs"/>
+		<result property="batchCount" column="batchCount"/>
+		<result property="smsCount" column="smsCount"/>
+		<result property="smsStatus" column="smsStatus"/>
+	</resultMap>
+
+	<!--所有字段列表 -->
+	<sql id="fields">
+		id,companyId,userId,userName,salaryMonth,salaryType,createTime,fileKey,template,title,signs,deleteFlag,batchCount,smsCount,smsStatus
+	</sql>
+
+	<!--从实体中取值 -->
+	<sql id="values">
+		#{id},#{companyId},#{userId},#{userName},#{salaryMonth},#{salaryType},#{createTime},#{fileKey},#{template},#{title},#{signs},#{deleteFlag},#{batchCount},#{smsCount},#{smsStatus}
+	</sql>
+
+	<!-- insert语句 -->
+	<insert id="insert" parameterType="SalaryBillLog" useGeneratedKeys="false"
+		keyProperty="id" keyColumn="id" >
+		insert into SalaryBillLog(
+		<include refid="fields"></include>
+		)
+		values(
+		<include refid="values"></include>
+		)
+	</insert>
+
+
+	<!-- 根据ID删除数据 -->
+	<delete id="deleteById">
+		Update salarybilllog set deleteFlag = 1 ,fileKey =  CONCAT(fileKey,'_del' ) where companyId = #{corpId} And id=#{id}
+	</delete>
+	
+
+	<!-- 根据ID查询实体 -->
+	<select id="findById" resultType="SalaryBillLog">
+		Select
+		<include refid="fields"></include>
+		from SalaryBillLog
+		where companyId = #{corpId} And 
+		      id = #{id}
+	</select>
+
+
+	<!-- 根据ID判断实体是否存在 -->
+	<select id="exists" resultType="boolean">
+		Select 1
+		from SalaryBillLog where companyId = #{corpId} And id = #{id}
+	</select>
+	
+	<!-- 获取导入操作记录 条目-->
+	<select id="getSalaryBillLogCount" resultType="long">
+		SELECT count(1)
+			from SalaryBillLog 
+			where companyId = #{companyId} and deleteFlag = 0
+			<if test="isBoss == false">
+				and userid = #{userId}
+			</if>
+	</select>
+	
+	<!-- 获取导入操作记录 -->
+	<select id="getSalaryBillLog" resultType="me.ywork.salarybill.model.SalaryBillLogModel">
+		select 
+		(case when s1.count1 is null then 0 else s1.count1 end) as total,
+		(case when s2.count2 is null then 0 else s2.count2 end) as readNum,
+		
+			b.id,b.companyId,b.userId,
+			e.fd_name as userName,
+			b.salaryMonth,salaryType,
+			b.createTime,
+			b.fileKey,
+			b.template,
+			b.deleteFlag
+			from SalaryBillLog b
+		 left join ding_org_element e on b.companyId = e.fd_orgid and 
+		 b.userid = e.fd_dingid and e.fd_org_type = 8
+		
+		 left join (select s.companyId,s.salaryBillLogId,count(1) as count1 from SalaryBill s where s.companyId = #{companyId}   group by s.salaryBillLogId) as s1 on s1.companyId = b.companyId and s1.salaryBillLogId = b.id
+		 left join (select sb.companyId,sb.salaryBillLogId,count(1) as count2 from SalaryBill sb where sb.companyId = #{companyId}  and sb.readFlag = 1 group by sb.salaryBillLogId) 
+									as s2 on s2.companyId = b.companyId and s2.salaryBillLogId = b.id
+									
+		 where b.companyId = #{companyId} AND deleteFlag = 0
+		 	<if test="isBoss == false">
+				and b.userid = #{userId}
+			</if>
+			order by createTime desc
+			limit #{skipCount}, #{pageSize}	
+	</select>
+	
+	<select id="getReadRecord" resultType="me.ywork.salarybill.model.SalaryBillReadRecordModel">
+		select 
+			   substring_index( s.deptId, '/', -1) as dept,
+			   e.fd_name as userName,
+			   s.userId,
+			   IFNULL(s.readflag,0) readFlag
+		from SalaryBill s
+		Left Join ding_org_element as e on s.companyId = e.fd_orgid 
+									and s.userId = e.fd_dingid 
+									and e.fd_org_type = 8
+									and e.fd_orgid = #{companyId}
+		 where s.companyId = #{companyId} 
+		 and s.salaryBillLogId = #{logid}
+		order by IFNULL(s.readflag,0) 
+			limit #{skipCount}, #{pageSize}	
+	</select>
+	
+	
+	<select id="getSendSmsInfo" resultType="me.ywork.salarybill.model.SalarySmsSendMode">
+		select 
+			  userName as name,
+			  smsCount as count,
+			  batchCount , 
+			  createTime as time
+		from SalaryBilllog
+		where companyId = #{companyId} and smsStatus = 1 
+		order by createTime desc
+	</select>
+	
+	<select id="getSalaryLogUsers" resultType="me.ywork.salarybill.model.SalaryBillReadRecordModel">
+		select  DISTINCT
+		s.userId, 
+		s.userName ,
+		e.fd_corp_name corpName,
+		(case when ifnull(u.fd_Mobile,'') = '' then u.fd_Mobile2 else u.fd_Mobile end) as mobileNo
+		from SalaryBill s
+		inner Join ding_org_user as u on s.companyId = u.fd_orgid 
+									and s.userId = u.fd_userid 
+									and u.fd_orgid = #{companyId}
+	    left join ding_org_corp e on s.companyid = e.fd_id
+	    												
+		 where s.companyId = #{companyId} 
+		 and s.salaryBillLogId = #{logid}
+		 <if test="smsMode == 1">
+		 	 and IFNULL(s.readflag,0) = 0
+		 </if>
+	</select>
+	
+	<select id="getSendSmsUsers" resultType="me.ywork.salarybill.model.SalaryBillReadRecordModel">
+		select  
+		u.fd_userId as userId, 
+		e.fd_name as userName ,
+		(case when ifnull(u.fd_Mobile,'') = '' then u.fd_Mobile2 else u.fd_Mobile end) as mobileNo
+		from  ding_org_user u 
+		
+		inner join ding_org_element e on e.fd_orgid = u.fd_orgid
+									 and e.fd_dingid = u.fd_userid
+									 and e.fd_org_type = 8
+									 and e.fd_is_sync = 1
+									  <if test="smsMode == 3">
+									  	and e.fd_is_available = 0
+									  </if>
+		 where u.fd_orgid = #{companyId} 
+		 and u.fd_userid in
+			(
+			    <foreach collection="salaryBills" index="i" item="u" separator=",">
+				    #{u.userId}
+				</foreach>
+			)
+	</select>
+	
+	<select id="getSmsLog" resultType="me.ywork.salarybill.model.SalaryBillLogModel">
+		select 
+		s.id,s.companyId,s.salaryType,s.createTime,m.smsShow,m.total as smsCount
+		from SalaryBilllog s
+		left join salarybillsms m on s.companyid = m.companyid
+		where s.smsStatus = 0 and s.deleteFlag = 0
+	</select>
+	
+	<select id="getStatus" resultType="String">
+		select 
+		s.id
+		from SalaryBilllog s
+		where s.companyId = #{companyId}  and s.userId = #{userId}
+	</select>
+	
+	
+	<update id="updateSmsStatus">
+		Update salarybilllog set smsCount = #{smsCount} ,smsStatus = 1
+		where id=#{id}
+	</update>
+	
+</mapper>

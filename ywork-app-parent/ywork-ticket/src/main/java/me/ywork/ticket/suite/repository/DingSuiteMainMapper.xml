@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper
+	namespace="me.ywork.ticket.suite.repository.DingSuiteMainRepositroy">
+	<resultMap id="DingSuiteMainResultMap"
+		type="me.ywork.ticket.suite.entity.DingSuiteMain">
+		<id property="id" jdbcType="VARCHAR" column="id" />
+		<result property="suiteName"  column="suiteName" />
+		<result property="corpId"  column="corpId" />
+		<result property="suiteId"  column="suiteId" />
+		<result property="secret"  column="secret" />
+		<result property="token"  column="token" />
+		<result property="encodingAESKey"  column="encodingAESKey" />
+		<result property="receiveEventUrl"  column="receiveEventUrl" />
+		<result property="authBackUrl"  column="authBackUrl" />
+		<result property="launchAuthDomain"  column="launchAuthDomain" />
+		<result property="receiveAuthDomain"  column="receiveAuthDomain" />
+		<result property="whiteList"  column="whiteList" />
+		<result property="logoUrl"  column="logoUrl" />
+		<result property="specialPermissions"  column="specialPermissions" />
+		<result property="createDate"  column="createDate" />
+		<result property="modifiedDate"  column="modifiedDate" />
+	</resultMap>
+	
+	<select id="load" parameterType="java.lang.String" resultMap="DingSuiteMainResultMap">
+		SELECT * FROM ding_suite_main WHERE id = #{id} limit 1
+	</select>
+	
+	<select id="getSuiteById" parameterType="java.lang.String" resultMap="DingSuiteMainResultMap">
+		SELECT * FROM ding_suite_main WHERE id = #{id} LIMIT 1
+	</select>
+	
+	<!-- 查询所有的ID -->
+	<select id="findAllIds" resultType="java.lang.String">
+		SELECT fd_id FROM ding_suite_main
+	</select>
+	
+	<delete id="delete" parameterType="java.lang.String">
+		DELETE FROM ding_suite_main WHERE id = #{id};
+	</delete>
+	
+	<!-- 插入 -->
+	<insert id="insert" keyProperty="id" parameterType="me.ywork.ticket.suite.entity.DingSuiteMain">
+		
+	</insert>
+
+	<select id="countAll" resultType="java.lang.Long">
+		SELECT count(id) FROM ding_suite_main
+	</select>
+
+	<sql id="updateDingSuiteCommonStatement">
+		
+	</sql>
+
+	<update id="update"
+		parameterType="me.ywork.ticket.suite.entity.DingSuiteMain">
+		<include refid="updateDingSuiteCommonStatement" />
+	</update>
+
+</mapper>
+

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kafka-consumer-group>
+	<!-- zookeeper集群的地址，可以是多个，多个之间用逗号分割 hostname1:port1,hostname2:port2,hostname3:port3 -->
+	
+	<!--
+		<zookeeper.connect>zookeeper01:2181,zookeeper02:2181,zookeeper03:2181</zookeeper.connect>
+	  -->
+	
+		
+	<zookeeper.connect>10.28.42.166:5005</zookeeper.connect>
+
+	<!-- ZooKeeper的最大超时时间，就是心跳的间隔，若是没有反映，那么认为已经死了，不易过大 -->
+	<zookeeper.session.timeout.ms>4000</zookeeper.session.timeout.ms>
+	<zookeeper.sync.time.ms>200</zookeeper.sync.time.ms>
+	<auto.commit.interval.ms>1000</auto.commit.interval.ms>
+	<consumer id="ywork_salary">
+		<!-- groupid -->
+		<groupid>httpRequestGroup</groupid>
+		<!-- 消息主题 -->
+		<topic>ywork_salary</topic>
+		<!-- 消息描述 -->
+		<topic-desc>处理前端http-connector发过来的http request</topic-desc>
+		<!-- 线程池数量,这个是pull消息的线程数,不是处理消息的线程数,通常1个就足够了 -->
+		<executeservice-count>1</executeservice-count>
+		<!-- 消费者class -->
+		<consumerclass>org.kafka.http.HttpRequestConsumer</consumerclass>
+		<!-- 消费者采用的编码器 -->
+		<consumercodec>org.kafka.codec.JsonJacksonCodec</consumercodec>
+		
+		<!-- 以下一般情况下不配置 -->
+		<!-- 只从指定的分区消费 -->
+		<specified-partition></specified-partition>
+		<!-- 如果配置了指定的分区,则必须指定brokerlist 格式：可以是多个，多个之间用逗号分割  192.168.1.1,192.168.1.2 不要带端口 -->
+		<specified-brokerlist></specified-brokerlist>
+	</consumer>
+</kafka-consumer-group>
