@@ -264,6 +264,7 @@ CREATE TABLE `dingsal_staff_attenday` (
 	`field_day` INT(11) NULL DEFAULT NULL COMMENT '自定义字段的天数',
 	`create_date` DATETIME NULL DEFAULT NULL COMMENT '创建时间',
 	`modified_date` DATETIME NULL DEFAULT NULL COMMENT '更改时间',
+	PRIMARY KEY (`id`),
 	INDEX `AK_idx_staffAttenDay_corpId_staffId_reportId_fieldId` (`corp_id`, `ding_staffid`, `atten_reportid`, `field_id`) USING BTREE
 )
 COLLATE='utf8_general_ci'
