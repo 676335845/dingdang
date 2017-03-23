@@ -1,0 +1,39 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.heyi</groupId>
+		<artifactId>commons-container-parent</artifactId>
+		<version>0.1.2c-SNAPSHOT</version>
+		<relativePath>..</relativePath>
+	</parent>
+	<artifactId>common-annotation-springmvc</artifactId>
+	<description>注解方式的 springmvc webapp(内嵌Jetty) 基础组件</description>
+	<packaging>jar</packaging>
+
+	<dependencies>
+		<!-- SPRING DEPENDENCIES -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>3.2.13.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>3.2.13.RELEASE</version>
+		</dependency>
+
+		<!-- JETTY DEPENDENCIES -->
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-webapp</artifactId>
+			<version>8.1.17.v20150415</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-annotations</artifactId>
+			<version>8.1.17.v20150415</version>
+		</dependency>
+	</dependencies>
+</project>
