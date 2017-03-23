@@ -1,0 +1,45 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.heyi</groupId>
+		<artifactId>commons-middleware-parent</artifactId>
+		<version>0.1.4-SNAPSHOT</version>
+		<relativePath>..</relativePath>
+	</parent>
+	<artifactId>common-redis-httpsession</artifactId>
+		
+	<description>分布式应用使用将httpsession存放redis中</description>
+	<packaging>jar</packaging>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.heyi</groupId>
+			<artifactId>common-utils</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<artifactId>http-consumer</artifactId>
+			<groupId>org.kafka</groupId>
+			<version>1.1.0.RELEASE</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.1.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.redisson</groupId>
+			<artifactId>redisson-core</artifactId>
+			<version>1.0.9</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>16.0.1</version>
+		</dependency>
+	</dependencies>
+	
+</project>

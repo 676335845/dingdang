@@ -1,0 +1,13 @@
+
+#AK\u914d\u7f6e
+ons.accesskey = gbTLeTX7wQmtTVc7
+ons.secretkey = gGVth6vz9mALnk0apaylntXkAomDke
+
+#\u7ebf\u4e0a\u9891\u9053
+channel.ons.topic = heyi-ons-test-topic
+channel.ons.producer = PID_HeyiOns_Producer01
+channel.ons.paygetway = CID_HeyiONS_Consumer_paygetway
+channel.ons.erp = CID_HeyiONS_Consumer_erp
+channel.ons.shop = CID_HeyiONS_Consumer_shop
+channel.ons.sale = CID_HeyiONS_Consumer_sale
+channel.ons.description = ONS\u9891\u9053

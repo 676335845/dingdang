@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mongo = "http://www.springframework.org/schema/data/mongo"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
+                           http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd">
+
+    <!-- 从应用根据目录的config目录中加载mongodb连接配置 -->
+	<util:properties id="mongoConfig" location="file:./config/mongo.properties" />
+	
+    <mongo:mongo id="mongo" host="#{mongoConfig.mongo.host}" port="#{mongoConfig.mongo.port}" replica-set="#{mongoConfig.mongo.replicaset}">
+        <mongo:options
+                connections-per-host="#{mongoConfig.mongo.connectionsPerHost}"
+                threads-allowed-to-block-for-connection-multiplier="#{mongoConfig.mongo.threadsAllowedToBlockForConnectionMultiplier}"
+                connect-timeout="#{mongoConfig.mongo.connectTimeout}"
+                max-wait-time="#{mongoConfig.mongo.maxWaitTime}"
+                auto-connect-retry="#{mongoConfig.mongo.autoConnectRetry}"
+                socket-keep-alive="#{mongoConfig.mongo.socketKeepAlive}"
+                socket-timeout="#{mongoConfig.mongo.socketTimeout}"
+                slave-ok="#{mongoConfig.mongo.slaveOk}"
+                write-number="1"
+                write-timeout="0"
+                write-fsync="true"/>
+    </mongo:mongo>
+
+    <mongo:db-factory id="mongoDbFactory" dbname="#{mongoConfig.mongo.database}" mongo-ref="mongo"/>
+
+    <bean id="mappingContext" class="org.springframework.data.mongodb.core.mapping.MongoMappingContext" />
+
+    <!-- 默认Mongodb类型映射 -->
+    <bean id="defaultMongoTypeMapper" class="org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper">
+        <constructor-arg name="typeKey">
+            <null /><!-- 这里设置为空,可以把 spring data mongodb 多余保存的_class字段去掉 -->
+        </constructor-arg>
+    </bean>
+
+    <bean id="mappingMongoConverter" class="org.springframework.data.mongodb.core.convert.MappingMongoConverter">
+        <constructor-arg name="mongoDbFactory" ref="mongoDbFactory" />
+        <constructor-arg name="mappingContext" ref="mappingContext" />
+        <property name="typeMapper" ref="defaultMongoTypeMapper" />
+    </bean>
+
+    <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate" >
+        <constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
+        <property name="writeResultChecking" value="EXCEPTION"/>
+        <constructor-arg name="mongoConverter" ref="mappingMongoConverter" />
+    </bean>
+</beans>

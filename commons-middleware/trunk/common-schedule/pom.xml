@@ -1,0 +1,36 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.heyi</groupId>
+		<artifactId>commons-middleware-parent</artifactId>
+		<version>0.1.4-SNAPSHOT</version>
+	</parent>
+	<artifactId>common-schedule</artifactId>
+	
+	<description>计划排程任务</description>
+
+	<dependencies>
+		<!-- 消息中间件支持 -->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>common-messagebus</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- 工具包 -->
+		<dependency>
+			<groupId>com.heyi</groupId>
+			<artifactId>common-utils</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- cassandra依赖 -->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>common-cassandra</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+</project>
