@@ -1,5 +1,7 @@
 
-		
+public static void main(){
+   System.out.println("nihao.com");
+}
 
 新增一行	
 ssa1 继续产生冲突 会产生冲突
