@@ -1,6 +1,6 @@
 
 public static void main(){
-   System.out.println("nihao.com");
+   System.out.println("nihaoaa.com");
 }
 
 新增一行	
